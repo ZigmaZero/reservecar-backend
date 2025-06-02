@@ -32,7 +32,7 @@ export const initDbStatement = (db) => {
         userId INTEGER NOT NULL,
         carId INTEGER NOT NULL,
         checkinTime TEXT NOT NULL,
-        checkoutTime TEXT NOT NULL,
+        checkoutTime TEXT,
         FOREIGN KEY (userId) REFERENCES Employee(userId),
         FOREIGN KEY (carId) REFERENCES Car(carId)
     );
