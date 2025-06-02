@@ -1,54 +1,26 @@
-require("dotenv").config();
+import 'dotenv/config';
 
-import express from 'express'
-import Database from 'better-sqlite3'
-const cors = require('cors')
+import express from 'express';
+import Database from 'better-sqlite3';
+import { initDbStatement } from './db_init.js';
+import cors from 'cors';
 
-const app = express()
-const port = 3000
-const db = new Database(process.env.DATABASE_NAME || 'database.db', { verbose: console.log })
+const app = express();
+const port = 3000;
+const db = new Database(process.env.DATABASE_NAME || 'database.db', { verbose: console.log });
+db.pragma('journal_mode = WAL');
 
 // Create database tables if they do not exist
-db.exec(`
-  CREATE TABLE IF NOT EXISTS Employee (
-    userId INTEGER PRIMARY KEY,
-    lineId TEXT NOT NULL,
-    name TEXT NOT NULL,
-    verified INTEGER NOT NULL,
-    teamId INTEGER,
-    FOREIGN KEY (teamId) REFERENCES Team(teamId)
-  );
+try {
+  initDbStatement(db);
+} catch (error) {
+  console.error("Error initializing database:", error);
+}
 
-  CREATE TABLE IF NOT EXISTS Team (
-    teamId INTEGER PRIMARY KEY,
-    name TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS Car (
-    carId INTEGER PRIMARY KEY,
-    plateNumber TEXT NOT NULL,
-    teamId INTEGER NOT NULL,
-    FOREIGN KEY (teamId) REFERENCES Team(teamId)
-  );
-
-  CREATE TABLE IF NOT EXISTS Admin (
-    adminId INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    password TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS Reservation (
-    reservationId INTEGER PRIMARY KEY,
-    userId INTEGER NOT NULL,
-    carId INTEGER NOT NULL,
-    checkinTime TEXT NOT NULL,
-    checkoutTime TEXT NOT NULL,
-    FOREIGN KEY (userId) REFERENCES Employee(userId),
-    FOREIGN KEY (carId) REFERENCES Car(carId)
-  );
-`);
-
-console.log('Tables confirmed to exist');
+// Middleware to parse JSON bodies
+app.use(express.json());
+// Middleware to parse URL-encoded bodies
+app.use(express.urlencoded({ extended: true }));
 
 // Configure CORS
 app.use(
@@ -61,9 +33,9 @@ app.use(
 );
 
 app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+  res.send('Hello World!');
+});
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+  console.log(`Example app listening on port ${port}`);
+});
