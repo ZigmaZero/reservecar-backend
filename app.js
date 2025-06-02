@@ -1,9 +1,12 @@
+require("dotenv").config();
+
 import express from 'express'
 import Database from 'better-sqlite3'
+const cors = require('cors')
 
 const app = express()
 const port = 3000
-const db = new Database('database.db', { verbose: console.log })
+const db = new Database(process.env.DATABASE_NAME || 'database.db', { verbose: console.log })
 
 // Create database tables if they do not exist
 db.exec(`
@@ -46,6 +49,16 @@ db.exec(`
 `);
 
 console.log('Tables confirmed to exist');
+
+// Configure CORS
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
