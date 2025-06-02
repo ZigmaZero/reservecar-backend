@@ -1,6 +1,7 @@
 {
   "name": "reservecar-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "app.js",
   "scripts": {
@@ -9,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "better-sqlite3": "^11.10.0",
     "express": "^5.1.0"
   }
 }
