@@ -1,5 +1,12 @@
 import express from 'express';
-import db from '../db.js';
+import { getEmployeeById } from '../services/employeeService.js';
+import { getCarById } from '../services/carService.js';
+import { 
+  createReservation, 
+  getReservationById, 
+  checkoutReservation 
+} from '../services/reservationService.js';
+
 const router = express.Router();
 
 // Checkin
@@ -18,20 +25,19 @@ router.post('/checkin', (req, res) => {
   }
 
   // Check if user exists
-  const user = db.prepare('SELECT 1 FROM Employee WHERE userId = ?').get(userId);
+  const user = getEmployeeById(userId);
   if (!user) {
     return res.status(404).json({ error: 'User not found.' });
   }
 
   // Check if car exists
-  const car = db.prepare('SELECT 1 FROM Car WHERE carId = ?').get(carId);
+  const car = getCarById(carId);
   if (!car) {
     return res.status(404).json({ error: 'Car not found.' });
   }
 
   try {
-    const stmt = db.prepare('INSERT INTO Reservation (userId, carId, checkinTime) VALUES (?, ?, ?)');
-    const result = stmt.run(userId, carId, checkinTime);
+    const result = createReservation(userId, carId, checkinTime);
     res.status(201).json({ reservationId: result.lastInsertRowid });
   } catch (error) {
     console.error("Error during check-in:", error);
@@ -50,14 +56,13 @@ router.post('/checkout', (req, res) => {
   }
 
   // Check if reservation exists
-  const reservation = db.prepare('SELECT * FROM Reservation WHERE reservationId = ?').get(reservationId);
+  const reservation = getReservationById(reservationId);
   if (!reservation) {
     return res.status(404).json({ error: 'Reservation not found.' });
   }
 
   try {
-    const stmt = db.prepare('UPDATE Reservation SET checkoutTime = ? WHERE reservationId = ?');
-    stmt.run(checkoutTime, reservationId);
+    checkoutReservation(reservationId, checkoutTime);
     res.status(200).json({ message: 'Checkout successful.' });
   } catch (error) {
     console.error("Error during checkout:", error);

@@ -1,136 +1,133 @@
 import express from 'express';
-import db from '../db.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
+import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
+import {
+  getCars,
+  getCarsCount,
+  getCarById,
+  createCar,
+  updateCar,
+  deleteCar
+} from '../services/carService.js';
+
 const router = express.Router();
 
-// Get all teams with pagination
-// GET /teams?page=1&pageSize=10
-router.get('/', authenticateToken, (req, res) => {
-const page = parseInt(req.query.page, 10) || 1;
-const pageSize = parseInt(req.query.pageSize, 10) || 10;
-if (page < 1 || pageSize < 1) {
+// Get all cars with pagination
+router.get('/', authenticateToken, authorizeAsAdmin, (req, res) => {
+  const page = parseInt(req.query.page, 10) || 1;
+  const pageSize = parseInt(req.query.pageSize, 10) || 10;
+  if (page < 1 || pageSize < 1) {
     return res.status(400).json({ error: 'Invalid page or pageSize. Both must be positive integers.' });
-}
-const offset = (page - 1) * pageSize;
+  }
+  const offset = (page - 1) * pageSize;
 
-try {
-    const totalStmt = db.prepare('SELECT COUNT(*) as count FROM Team');
-    const total = totalStmt.get().count;
-
-    const stmt = db.prepare('SELECT * FROM Team LIMIT ? OFFSET ?');
-    const teams = stmt.all(pageSize, offset);
+  try {
+    const total = getCarsCount();
+    const cars = getCars(pageSize, offset);
 
     res.status(200).json({
-    data: teams,
-    total,
-    page,
-    pageSize,
-    maxPages: Math.ceil(total / pageSize)
+      data: cars,
+      total,
+      page,
+      pageSize,
+      maxPages: Math.ceil(total / pageSize)
     });
-} catch (error) {
-    console.error("Error fetching teams:", error);
+  } catch (error) {
+    console.error("Error fetching cars:", error);
     res.status(500).json({ error: 'Internal Server Error' });
-}
+  }
 });
 
-// Get team by ID
-router.get('/:teamId', authenticateToken, (req, res) => {
-const teamId = parseInt(req.params.teamId, 10);
+// Get car by ID
+router.get('/:carId', authenticateToken, authorizeAsAdmin, (req, res) => {
+  const carId = parseInt(req.params.carId, 10);
 
-if (isNaN(teamId) || !Number.isInteger(teamId)) {
-    return res.status(400).json({ error: 'Invalid teamId. It must be an integer.' });
-}
+  if (isNaN(carId) || !Number.isInteger(carId)) {
+    return res.status(400).json({ error: 'Invalid carId. It must be an integer.' });
+  }
 
-try {
-    const stmt = db.prepare('SELECT * FROM Team WHERE teamId = ?');
-    const team = stmt.get(teamId);
+  try {
+    const car = getCarById(carId);
 
-    if (!team) {
-    return res.status(404).json({ error: 'Team not found.' });
+    if (!car) {
+      return res.status(404).json({ error: 'Car not found.' });
     }
 
-    res.status(200).json(team);
-} catch (error) {
-    console.error("Error fetching team:", error);
+    res.status(200).json(car);
+  } catch (error) {
+    console.error("Error fetching car:", error);
     res.status(500).json({ error: 'Internal Server Error' });
-}
+  }
 });
 
-// Create a new team
-router.post('/', authenticateToken, (req, res) => {
-const { name } = req.body;
+// Create a new car
+router.post('/', authenticateToken, authorizeAsAdmin, (req, res) => {
+  const { plateNumber, teamId } = req.body;
 
-if (typeof name !== 'string' || name.trim() === '') {
-    return res.status(400).json({ error: 'Invalid team name.' });
-}
+  if (typeof plateNumber !== 'string' 
+      || plateNumber.trim() === '' 
+      || typeof teamId !== 'number' 
+      || !Number.isInteger(teamId)) {
+    return res.status(400).json({ error: 'Invalid plateNumber or teamId.' });
+  }
 
-try {
-    const stmt = db.prepare('INSERT INTO Team (name) VALUES (?)');
-    const result = stmt.run(name);
-    res.status(201).json({ teamId: result.lastInsertRowid, name });
-} catch (error) {
-    console.error("Error creating team:", error);
+  try {
+    const result = createCar(plateNumber, teamId);
+    res.status(201).json({ carId: result.lastInsertRowid, plateNumber, teamId });
+  } catch (error) {
+    console.error("Error creating car:", error);
     res.status(500).json({ error: 'Internal Server Error' });
-}
+  }
 });
 
-// Update a team's name
-router.put('/:teamId', authenticateToken, (req, res) => {
-const teamId = parseInt(req.params.teamId, 10);
-const { name } = req.body;
+// Update a car's plate number and team
+router.put('/:carId', authenticateToken, authorizeAsAdmin, (req, res) => {
+  const carId = parseInt(req.params.carId, 10);
+  const { plateNumber, teamId } = req.body;
 
-if (
-    isNaN(teamId) ||
-    !Number.isInteger(teamId) ||
-    typeof name !== 'string' ||
-    name.trim() === ''
-) {
-    return res.status(400).json({ error: 'Invalid teamId or team name.' });
-}
+  if (isNaN(carId) 
+    || !Number.isInteger(carId) 
+    || typeof plateNumber !== 'string' 
+    || plateNumber.trim() === '' 
+    || typeof teamId !== 'number' 
+    || !Number.isInteger(teamId)) {
+    return res.status(400).json({ error: 'Invalid carId, plateNumber, or teamId.' });
+  }
 
-try {
-    const stmt = db.prepare('UPDATE Team SET name = ? WHERE teamId = ?');
-    const result = stmt.run(name, teamId);
+  try {
+    const result = updateCar(carId, plateNumber, teamId);
 
     if (result.changes === 0) {
-    return res.status(404).json({ error: 'Team not found.' });
+      return res.status(404).json({ error: 'Car not found.' });
     }
 
-    res.status(200).json({ message: 'Team updated successfully.' });
-} catch (error) {
-    console.error("Error updating team:", error);
+    res.status(200).json({ message: 'Car updated successfully.' });
+  } catch (error) {
+    console.error("Error updating car:", error);
     res.status(500).json({ error: 'Internal Server Error' });
-}
+  }
 });
 
-// Delete a team
-router.delete('/:teamId', authenticateToken, (req, res) => {
-const teamId = parseInt(req.params.teamId, 10);
+// Delete a car
+router.delete('/:carId', authenticateToken, authorizeAsAdmin, (req, res) => {
+  const carId = parseInt(req.params.carId, 10);
 
-if (isNaN(teamId) || !Number.isInteger(teamId)) {
-    return res.status(400).json({ error: 'Invalid teamId. It must be an integer.' });
-}
+  if (isNaN(carId) || !Number.isInteger(carId)) {
+    return res.status(400).json({ error: 'Invalid carId. It must be an integer.' });
+  }
 
-try {
-    // Run both statements in a transaction
-    const deleteTeamTransaction = db.transaction((teamId) => {
-    db.prepare('UPDATE Employee SET teamId = NULL WHERE teamId = ?').run(teamId);
-    const stmt = db.prepare('DELETE FROM Team WHERE teamId = ?');
-    const result = stmt.run(teamId);
-    return result;
-    });
-
-    const result = deleteTeamTransaction(teamId);
+  try {
+    const result = deleteCar(carId);
 
     if (result.changes === 0) {
-    return res.status(404).json({ error: 'Team not found.' });
+      return res.status(404).json({ error: 'Car not found.' });
     }
 
-    res.status(200).json({ message: 'Team deleted successfully. All members have been unassigned.' });
-} catch (error) {
-    console.error("Error deleting team:", error);
+    res.status(200).json({ message: 'Car deleted successfully.' });
+  } catch (error) {
+    console.error("Error deleting car:", error);
     res.status(500).json({ error: 'Internal Server Error' });
-}
+  }
 });
 
 export default router;

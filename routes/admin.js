@@ -34,12 +34,4 @@ router.post('/login', (req, res) => {
   }
 });
 
-// Admin auth endpoint
-router.get('/auth', authenticateToken, (req, res) => {
-  res.status(200).json({
-    message: 'Admin authenticated',
-    adminId: req.user.name
-  });
-});
-
 export default router;
