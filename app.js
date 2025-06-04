@@ -4,7 +4,6 @@ import express from 'express';
 import db from './db.js';
 import { initDbStatement } from './db_init.js';
 import cors from 'cors';
-import jwt from 'jsonwebtoken';
 
 import userRoutes from './routes/user.js';
 import adminRoutes from './routes/admin.js';
@@ -26,24 +25,6 @@ try {
 // Middleware to parse JSON
 app.use(express.json());
 
-// Middleware to authenticate JWT token
-function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization']
-  const token = authHeader && authHeader.split(' ')[1]
-
-  if (token == null) return res.sendStatus(401)
-
-  jwt.verify(token, process.env.TOKEN_SECRET, (err, user) => {
-    console.log(err)
-
-    if (err) return res.sendStatus(403)
-
-    req.user = user
-
-    next()
-  })
-}
-
 // Configure CORS
 app.use(
   cors({
@@ -55,11 +36,11 @@ app.use(
 );
 
 app.use('/user', userRoutes);
-app.use('/admin', adminRoutes(authenticateToken));
-app.use('/employees', employeeRoutes(authenticateToken));
-app.use('/teams', teamRoutes(authenticateToken));
-app.use('/cars', carRoutes(authenticateToken));
-app.use('/reservations', reservationRoutes(authenticateToken));
+app.use('/admin', adminRoutes);
+app.use('/employees', employeeRoutes);
+app.use('/teams', teamRoutes);
+app.use('/cars', carRoutes);
+app.use('/reservations', reservationRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
