@@ -24,7 +24,7 @@ const port = 3000;
 try {
   initDbStatement(db);
 } catch (error) {
-  console.error("Error initializing database:", error);
+  logger.error("Error initializing database:", error);
 }
 
 // Middleware to parse JSON

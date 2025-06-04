@@ -1,3 +1,5 @@
+import logger from "./logger.js";
+
 export const initDbStatement = (db) => {
     db.exec(`
     CREATE TABLE IF NOT EXISTS Employee (
@@ -37,5 +39,5 @@ export const initDbStatement = (db) => {
         FOREIGN KEY (carId) REFERENCES Car(carId)
     );
     `);
-    console.log('Database tables initialized successfully.');
+    logger.info('Database tables initialized successfully.');
 }
