@@ -1,8 +1,8 @@
 import express from 'express';
-
+import db from '../db.js';
 const router = express.Router();
 
-export default (db, authenticateToken) => {
+export default (authenticateToken) => {
   // Get all teams with pagination
   // GET /teams?page=1&pageSize=10
   router.get('/', authenticateToken, (req, res) => {

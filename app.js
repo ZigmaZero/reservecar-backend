@@ -54,12 +54,12 @@ app.use(
   })
 );
 
-app.use('/user', userRoutes(db));
-app.use('/admin', adminRoutes(db, authenticateToken));
-app.use('/employees', employeeRoutes(db, authenticateToken));
-app.use('/teams', teamRoutes(db, authenticateToken));
-app.use('/cars', carRoutes(db, authenticateToken));
-app.use('/reservations', reservationRoutes(db, authenticateToken));
+app.use('/user', userRoutes);
+app.use('/admin', adminRoutes(authenticateToken));
+app.use('/employees', employeeRoutes(authenticateToken));
+app.use('/teams', teamRoutes(authenticateToken));
+app.use('/cars', carRoutes(authenticateToken));
+app.use('/reservations', reservationRoutes(authenticateToken));
 
 app.get('/', (req, res) => {
   res.send('Hello World!');

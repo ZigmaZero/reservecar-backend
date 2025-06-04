@@ -1,13 +1,13 @@
 import express from 'express';
 import jwt from 'jsonwebtoken';
-
+import db from '../db.js';
 const router = express.Router();
 
 function generateAccessToken(user) {
   return jwt.sign(user, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
 }
 
-export default (db, authenticateToken) => {
+export default (authenticateToken) => {
   // Admin Login
   router.post('/login', (req, res) => {
     const { name, password } = req.body;
