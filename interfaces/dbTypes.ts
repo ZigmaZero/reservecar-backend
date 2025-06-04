@@ -38,3 +38,7 @@ export type Reservation = {
     checkinTime: string,
     checkoutTime?: string
 }
+
+export interface Count {
+    count: number
+}

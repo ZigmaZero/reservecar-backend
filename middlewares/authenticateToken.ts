@@ -6,16 +6,25 @@ export default function authenticateToken(req: AuthenticatedRequest, res: Respon
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
-  if (token == null) return res.sendStatus(401);
+  if (token == null) 
+  {
+    res.sendStatus(401);
+    return;
+  }
 
   const secret = process.env.TOKEN_SECRET;
   if (!secret) {
-    return res.status(500).json({ error: 'TOKEN_SECRET is not set in environment variables.' });
+    res.status(500).json({ error: 'TOKEN_SECRET is not set in environment variables.' });
+    return;
   }
 
   jwt.verify(token, secret, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.payload = user;
+    if (err)
+    {
+      res.sendStatus(403);
+      return;
+    }
+    req.payload = user as string;
     next();
   });
 }

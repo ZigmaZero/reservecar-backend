@@ -1,27 +1,35 @@
-import express from 'express';
+import express, { Request, Response, Router } from 'express';
 import jwt from 'jsonwebtoken';
 import db from '../db.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
-const router = express.Router();
+import { Admin } from '../interfaces/dbTypes.js';
+const router: Router = express.Router();
 
-function generateAccessToken(user) {
-  return jwt.sign(user, process.env.TOKEN_SECRET, { expiresIn: '1800s' });
+function generateAccessToken(user: Admin): string {
+  const secret = process.env.TOKEN_SECRET;
+  if (!secret) {
+    throw new Error('TOKEN_SECRET is not set in environment variables.');
+  }
+
+  return jwt.sign(user.name, secret, { expiresIn: '1800s' });
 }
 
-router.post('/login', (req, res) => {
+router.post('/login', (req: Request, res: Response) => {
   const { name, password } = req.body;
 
   // Input validation
   if (typeof name !== 'string' || typeof password !== 'string') {
-    return res.status(400).json({ error: 'Invalid name or password.' });
+    res.status(400).json({ error: 'Invalid name or password.' });
+    return;
   }
 
   try {
-    const stmt = db.prepare('SELECT * FROM Admin WHERE name = ? AND password = ?');
+    const stmt = db.prepare<[string, string], Admin>('SELECT * FROM Admin WHERE name = ? AND password = ?');
     const admin = stmt.get(name, password);
 
     if (!admin) {
-      return res.status(401).json({ error: 'Invalid credentials.' });
+      res.status(401).json({ error: 'Invalid credentials.' });
+      return;
     }
 
     // Generate JWT token

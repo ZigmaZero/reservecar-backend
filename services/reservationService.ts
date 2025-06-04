@@ -1,25 +1,29 @@
+import Database from 'better-sqlite3';
 import db from '../db.js';
+import { Count, Reservation } from '../interfaces/dbTypes.js';
 
-export function getReservations(pageSize, offset) {
-  const stmt = db.prepare('SELECT * FROM Reservation LIMIT ? OFFSET ?');
+export function getReservations(pageSize: number, offset: number): Reservation[] {
+  const stmt = db.prepare<[number, number], Reservation>('SELECT * FROM Reservation LIMIT ? OFFSET ?');
   return stmt.all(pageSize, offset);
 }
 
-export function getReservationsCount() {
-  const stmt = db.prepare('SELECT COUNT(*) as count FROM Reservation');
-  return stmt.get().count;
+export function getReservationsCount(): number {
+  const stmt = db.prepare<[], Count>('SELECT COUNT(*) as count FROM Reservation');
+  const count = stmt.get();
+  return count ? count.count : 0;
 }
 
-export function createReservation(userId, carId, checkinTime) {
+export function createReservation(userId: number, carId: number, checkinTime: string): Database.RunResult {
   const stmt = db.prepare('INSERT INTO Reservation (userId, carId, checkinTime) VALUES (?, ?, ?)');
   return stmt.run(userId, carId, checkinTime);
 }
 
-export function getReservationById(reservationId) {
-  return db.prepare('SELECT * FROM Reservation WHERE reservationId = ?').get(reservationId);
+export function getReservationById(reservationId: number): Reservation | undefined {
+  const stmt = db.prepare<[number], Reservation>('SELECT * FROM Reservation WHERE reservationId = ?')
+  return stmt.get(reservationId);
 }
 
-export function checkoutReservation(reservationId, checkoutTime) {
+export function checkoutReservation(reservationId: number, checkoutTime: string): Database.RunResult {
   const stmt = db.prepare('UPDATE Reservation SET checkoutTime = ? WHERE reservationId = ?');
   return stmt.run(checkoutTime, reservationId);
 }

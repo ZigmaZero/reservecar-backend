@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import { getEmployeeById } from '../services/employeeService.js';
 import { getCarById } from '../services/carService.js';
 import { 
@@ -10,7 +10,7 @@ import {
 const router = express.Router();
 
 // Checkin
-router.post('/checkin', (req, res) => {
+router.post('/checkin', (req: Request, res: Response) => {
   const { userId, carId } = req.body;
   const checkinTime = new Date().toISOString();
 
@@ -21,19 +21,22 @@ router.post('/checkin', (req, res) => {
     !Number.isInteger(userId) ||
     !Number.isInteger(carId)
   ) {
-    return res.status(400).json({ error: 'Invalid userId or carId. Both must be integers.' });
+    res.status(400).json({ error: 'Invalid userId or carId. Both must be integers.' });
+    return;
   }
 
   // Check if user exists
   const user = getEmployeeById(userId);
   if (!user) {
-    return res.status(404).json({ error: 'User not found.' });
+    res.status(404).json({ error: 'User not found.' });
+    return;
   }
 
   // Check if car exists
   const car = getCarById(carId);
   if (!car) {
-    return res.status(404).json({ error: 'Car not found.' });
+    res.status(404).json({ error: 'Car not found.' });
+    return;
   }
 
   try {
@@ -46,19 +49,21 @@ router.post('/checkin', (req, res) => {
 });
 
 // Checkout
-router.post('/checkout', (req, res) => {
+router.post('/checkout', (req: Request, res: Response) => {
   const { reservationId } = req.body;
   const checkoutTime = new Date().toISOString();
 
   // Input validation
   if (typeof reservationId !== 'number' || !Number.isInteger(reservationId)) {
-    return res.status(400).json({ error: 'Invalid reservationId. It must be an integer.' });
+    res.status(400).json({ error: 'Invalid reservationId. It must be an integer.' });
+    return;
   }
 
   // Check if reservation exists
   const reservation = getReservationById(reservationId);
   if (!reservation) {
-    return res.status(404).json({ error: 'Reservation not found.' });
+    res.status(404).json({ error: 'Reservation not found.' });
+    return;
   }
 
   try {
