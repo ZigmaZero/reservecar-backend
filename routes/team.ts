@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {Response} from 'express';
 import authenticateToken from '../middlewares/authenticateToken.js';
 import {
   getTeams,
@@ -9,14 +9,16 @@ import {
   deleteTeamAndUnassignMembers
 } from '../services/teamService.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
+import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
 
 const router = express.Router();
 
-router.get('/', authenticateToken, authorizeAsAdmin, (req, res) => {
-  const page = parseInt(req.query.page, 10) || 1;
-  const pageSize = parseInt(req.query.pageSize, 10) || 10;
+router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+  const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+  const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
   if (page < 1 || pageSize < 1) {
-    return res.status(400).json({ error: 'Invalid page or pageSize. Both must be positive integers.' });
+    res.status(400).json({ error: 'Invalid page or pageSize. Both must be positive integers.' });
+    return;
   }
   const offset = (page - 1) * pageSize;
 
@@ -38,18 +40,20 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req, res) => {
 });
 
 // Get team by ID
-router.get('/:teamId', authenticateToken, authorizeAsAdmin, (req, res) => {
+router.get('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const teamId = parseInt(req.params.teamId, 10);
 
   if (isNaN(teamId) || !Number.isInteger(teamId)) {
-    return res.status(400).json({ error: 'Invalid teamId. It must be an integer.' });
+    res.status(400).json({ error: 'Invalid teamId. It must be an integer.' });
+    return;
   }
 
   try {
     const team = getTeamById(teamId);
 
     if (!team) {
-      return res.status(404).json({ error: 'Team not found.' });
+      res.status(404).json({ error: 'Team not found.' });
+      return;
     }
 
     res.status(200).json(team);
@@ -60,11 +64,12 @@ router.get('/:teamId', authenticateToken, authorizeAsAdmin, (req, res) => {
 });
 
 // Create a new team
-router.post('/', authenticateToken, authorizeAsAdmin, (req, res) => {
+router.post('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const { name } = req.body;
 
   if (typeof name !== 'string' || name.trim() === '') {
-    return res.status(400).json({ error: 'Invalid team name.' });
+    res.status(400).json({ error: 'Invalid team name.' });
+    return;
   }
 
   try {
@@ -77,7 +82,7 @@ router.post('/', authenticateToken, authorizeAsAdmin, (req, res) => {
 });
 
 // Update a team's name
-router.put('/:teamId', authenticateToken, authorizeAsAdmin, (req, res) => {
+router.put('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const teamId = parseInt(req.params.teamId, 10);
   const { name } = req.body;
 
@@ -87,14 +92,16 @@ router.put('/:teamId', authenticateToken, authorizeAsAdmin, (req, res) => {
     typeof name !== 'string' ||
     name.trim() === ''
   ) {
-    return res.status(400).json({ error: 'Invalid teamId or team name.' });
+    res.status(400).json({ error: 'Invalid teamId or team name.' });
+    return;
   }
 
   try {
     const result = updateTeam(teamId, name);
 
     if (result.changes === 0) {
-      return res.status(404).json({ error: 'Team not found.' });
+      res.status(404).json({ error: 'Team not found.' });
+      return;
     }
 
     res.status(200).json({ message: 'Team updated successfully.' });
@@ -105,18 +112,20 @@ router.put('/:teamId', authenticateToken, authorizeAsAdmin, (req, res) => {
 });
 
 // Delete a team
-router.delete('/:teamId', authenticateToken, authorizeAsAdmin, (req, res) => {
+router.delete('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const teamId = parseInt(req.params.teamId, 10);
 
   if (isNaN(teamId) || !Number.isInteger(teamId)) {
-    return res.status(400).json({ error: 'Invalid teamId. It must be an integer.' });
+    res.status(400).json({ error: 'Invalid teamId. It must be an integer.' });
+    return;
   }
 
   try {
     const result = deleteTeamAndUnassignMembers(teamId);
 
     if (result.changes === 0) {
-      return res.status(404).json({ error: 'Team not found.' });
+      res.status(404).json({ error: 'Team not found.' });
+      return;
     }
 
     res.status(200).json({ message: 'Team deleted successfully. All members have been unassigned.' });

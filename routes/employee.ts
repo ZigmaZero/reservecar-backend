@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Response } from 'express';
 import authenticateToken from '../middlewares/authenticateToken.js';
 import {
   getEmployees,
@@ -8,17 +8,19 @@ import {
   assignEmployeeToTeam
 } from '../services/employeeService.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
+import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
 
 const router = express.Router();
 
 // Get all employees with pagination
-router.get('/', authenticateToken, authorizeAsAdmin, (req, res) => {
-  const page = parseInt(req.query.page, 10) || 1;
-  const pageSize = parseInt(req.query.pageSize, 10) || 10;
+router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+  const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
+  const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
   if (page < 1 || pageSize < 1) {
-    return res.status(400).json({ 
+    res.status(400).json({ 
       error: 'Invalid page or pageSize. Both must be positive integers.' 
     });
+    return;
   }
   const offset = (page - 1) * pageSize;
 
@@ -40,18 +42,20 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req, res) => {
 });
 
 // Get employee by ID
-router.get('/:userId', authenticateToken, authorizeAsAdmin, (req, res) => {
+router.get('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const userId = parseInt(req.params.userId, 10);
 
   if (isNaN(userId) || !Number.isInteger(userId)) {
-    return res.status(400).json({ error: 'Invalid userId. It must be an integer.' });
+    res.status(400).json({ error: 'Invalid userId. It must be an integer.' });
+    return;
   }
 
   try {
     const employee = getEmployeeById(userId);
 
     if (!employee) {
-      return res.status(404).json({ error: 'Employee not found.' });
+      res.status(404).json({ error: 'Employee not found.' });
+      return;
     }
 
     res.status(200).json(employee);
@@ -62,18 +66,20 @@ router.get('/:userId', authenticateToken, authorizeAsAdmin, (req, res) => {
 });
 
 // Verify employee (PUT)
-router.put('/:userId/verify', authenticateToken, authorizeAsAdmin, (req, res) => {
+router.put('/:userId/verify', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const userId = parseInt(req.params.userId, 10);
 
   if (isNaN(userId) || !Number.isInteger(userId)) {
-    return res.status(400).json({ error: 'Invalid userId. It must be an integer.' });
+    res.status(400).json({ error: 'Invalid userId. It must be an integer.' });
+    return;
   }
 
   try {
     const result = verifyEmployee(userId);
 
     if (result.changes === 0) {
-      return res.status(404).json({ error: 'Employee not found or already verified.' });
+      res.status(404).json({ error: 'Employee not found or already verified.' });
+      return;
     }
 
     res.status(200).json({ message: 'Employee verified successfully.' });
@@ -84,7 +90,7 @@ router.put('/:userId/verify', authenticateToken, authorizeAsAdmin, (req, res) =>
 });
 
 // Assign employee to team (PUT)
-router.put('/:userId/team', authenticateToken, authorizeAsAdmin, (req, res) => {
+router.put('/:userId/team', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const userId = parseInt(req.params.userId, 10);
   const { teamId } = req.body;
 
@@ -94,14 +100,16 @@ router.put('/:userId/team', authenticateToken, authorizeAsAdmin, (req, res) => {
     isNaN(teamId) ||
     !Number.isInteger(teamId)
   ) {
-    return res.status(400).json({ error: 'Invalid userId or teamId. Both must be integers.' });
+    res.status(400).json({ error: 'Invalid userId or teamId. Both must be integers.' });
+    return;
   }
 
   try {
     const result = assignEmployeeToTeam(userId, teamId);
 
     if (result.changes === 0) {
-      return res.status(404).json({ error: 'Employee not found.' });
+      res.status(404).json({ error: 'Employee not found.' });
+      return;
     }
 
     res.status(200).json({ message: 'Employee assigned to team successfully.' });
