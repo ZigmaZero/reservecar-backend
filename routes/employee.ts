@@ -15,7 +15,7 @@ import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
 const router = express.Router();
 
 // Get all employees with pagination
-router.get('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
   if (page < 1 || pageSize < 1) {
@@ -44,7 +44,7 @@ router.get('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: Auth
 });
 
 // Get employee by ID
-router.get('/:userId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const userId = parseInt(req.params.userId, 10);
 
   if (isNaN(userId) || !Number.isInteger(userId)) {
@@ -68,7 +68,7 @@ router.get('/:userId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (re
 });
 
 // Verify employee (PUT)
-router.put('/:userId/verify', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.put('/:userId/verify', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const userId = parseInt(req.params.userId, 10);
 
   if (isNaN(userId) || !Number.isInteger(userId)) {
@@ -92,7 +92,7 @@ router.put('/:userId/verify', tokenMiddleware, authenticateToken, authorizeAsAdm
 });
 
 // Assign employee to team (PUT)
-router.put('/:userId/team', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.put('/:userId/team', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const userId = parseInt(req.params.userId, 10);
   const { teamId } = req.body;
 

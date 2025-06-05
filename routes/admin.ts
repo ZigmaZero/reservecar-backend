@@ -24,9 +24,6 @@ router.post('/login', (req: Request, res: Response) => {
       return;
     }
 
-    // Generate JWT token and set it as a cookie
-    const token = generateAccessToken(admin);
-    setTokenAsCookie(token, req, res);
     res.status(200).json(
       { message: 'Login successful', 
         admin: {
