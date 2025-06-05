@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import logger from '../logger.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
 import tokenMiddleware from '../middlewares/tokenMiddleware.js';
@@ -36,7 +37,7 @@ router.get('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: Auth
       maxPages: Math.ceil(total / pageSize)
     });
   } catch (error) {
-    console.error("Error fetching cars:", error);
+    logger.error("Error fetching cars:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -60,7 +61,7 @@ router.get('/:carId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req
 
     res.status(200).json(car);
   } catch (error) {
-    console.error("Error fetching car:", error);
+    logger.error("Error fetching car:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -81,7 +82,7 @@ router.post('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req, res
     const result = createCar(plateNumber, teamId);
     res.status(201).json({ carId: result.lastInsertRowid, plateNumber, teamId });
   } catch (error) {
-    console.error("Error creating car:", error);
+    logger.error("Error creating car:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -111,7 +112,7 @@ router.put('/:carId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req
 
     res.status(200).json({ message: 'Car updated successfully.' });
   } catch (error) {
-    console.error("Error updating car:", error);
+    logger.error("Error updating car:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -135,7 +136,7 @@ router.delete('/:carId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (
 
     res.status(200).json({ message: 'Car deleted successfully.' });
   } catch (error) {
-    console.error("Error deleting car:", error);
+    logger.error("Error deleting car:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

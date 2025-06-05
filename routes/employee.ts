@@ -1,4 +1,5 @@
 import express, { Response } from 'express';
+import logger from '../logger.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
 import tokenMiddleware from '../middlewares/tokenMiddleware.js';
 import {
@@ -37,7 +38,7 @@ router.get('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: Auth
       maxPages: Math.ceil(total / pageSize)
     });
   } catch (error) {
-    console.error("Error fetching employees:", error);
+    logger.error("Error fetching employees:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -61,7 +62,7 @@ router.get('/:userId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (re
 
     res.status(200).json(employee);
   } catch (error) {
-    console.error("Error fetching employee:", error);
+    logger.error("Error fetching employee:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -85,7 +86,7 @@ router.put('/:userId/verify', tokenMiddleware, authenticateToken, authorizeAsAdm
 
     res.status(200).json({ message: 'Employee verified successfully.' });
   } catch (error) {
-    console.error("Error verifying employee:", error);
+    logger.error("Error verifying employee:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -115,7 +116,7 @@ router.put('/:userId/team', tokenMiddleware, authenticateToken, authorizeAsAdmin
 
     res.status(200).json({ message: 'Employee assigned to team successfully.' });
   } catch (error) {
-    console.error("Error assigning employee to team:", error);
+    logger.error("Error assigning employee to team:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

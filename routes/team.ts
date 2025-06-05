@@ -1,4 +1,5 @@
 import express, {Response} from 'express';
+import logger from '../logger.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
 import tokenMiddleware from '../middlewares/tokenMiddleware.js';
 import {
@@ -35,7 +36,7 @@ router.get('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: Auth
       maxPages: Math.ceil(total / pageSize)
     });
   } catch (error) {
-    console.error("Error fetching teams:", error);
+    logger.error("Error fetching teams:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -59,7 +60,7 @@ router.get('/:teamId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (re
 
     res.status(200).json(team);
   } catch (error) {
-    console.error("Error fetching team:", error);
+    logger.error("Error fetching team:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -77,7 +78,7 @@ router.post('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: Aut
     const result = createTeam(name);
     res.status(201).json({ teamId: result.lastInsertRowid, name });
   } catch (error) {
-    console.error("Error creating team:", error);
+    logger.error("Error creating team:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -107,7 +108,7 @@ router.put('/:teamId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (re
 
     res.status(200).json({ message: 'Team updated successfully.' });
   } catch (error) {
-    console.error("Error updating team:", error);
+    logger.error("Error updating team:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -131,7 +132,7 @@ router.delete('/:teamId', tokenMiddleware, authenticateToken, authorizeAsAdmin, 
 
     res.status(200).json({ message: 'Team deleted successfully. All members have been unassigned.' });
   } catch (error) {
-    console.error("Error deleting team:", error);
+    logger.error("Error deleting team:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

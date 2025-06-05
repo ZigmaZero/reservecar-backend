@@ -1,4 +1,5 @@
 import express, { Response } from 'express';
+import logger from '../logger.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
 import tokenMiddleware from '../middlewares/tokenMiddleware.js';
 import {
@@ -33,7 +34,7 @@ router.get('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: Auth
       maxPages: Math.ceil(total / pageSize)
     });
   } catch (error) {
-    console.error("Error fetching reservations:", error);
+    logger.error("Error fetching reservations:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
@@ -57,7 +58,7 @@ router.get('/:reservationId', tokenMiddleware, authenticateToken, authorizeAsAdm
 
     res.status(200).json(reservation);
   } catch (error) {
-    console.error("Error fetching reservation:", error);
+    logger.error("Error fetching reservation:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

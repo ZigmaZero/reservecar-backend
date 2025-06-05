@@ -1,9 +1,9 @@
 import express, { Request, Response, Router } from 'express';
-import jwt from 'jsonwebtoken';
 import db from '../db.js';
 import { Admin, JwtPayload } from '../interfaces/dbTypes.js';
 import generateAccessToken from '../utils/generateAccessToken.js';
 import setTokenAsCookie from '../utils/setTokenAsCookie.js';
+import logger from '../logger.js';
 const router: Router = express.Router();
 
 router.post('/login', (req: Request, res: Response) => {
@@ -30,7 +30,7 @@ router.post('/login', (req: Request, res: Response) => {
 
     res.status(200).json({ message: 'Login successful' });
   } catch (error) {
-    console.error("Error during admin login:", error);
+    logger.error("Error during admin login:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
