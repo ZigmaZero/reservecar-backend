@@ -68,7 +68,7 @@ router.post('/login', (req: Request, res: Response) => {
     const token = generateAccessToken(user);
     setTokenAsCookie(token, req, res);
 
-    res.status(201).json({ success: true });
+    res.status(201).json({ success: true, verified: user.verified });
   } catch (error) {
     logger.error("Error during login:", error);
     res.status(500).json({ error: 'Internal Server Error' });
