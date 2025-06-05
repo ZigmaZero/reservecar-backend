@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest';
+import { JwtPayload } from '../interfaces/dbTypes';
 
 export default function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
@@ -24,7 +25,7 @@ export default function authenticateToken(req: AuthenticatedRequest, res: Respon
       res.sendStatus(403);
       return;
     }
-    req.payload = user as string;
+    req.payload = (user as JwtPayload).name as string;
     next();
   });
 }

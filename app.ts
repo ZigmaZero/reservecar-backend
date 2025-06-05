@@ -1,8 +1,10 @@
 import 'dotenv/config';
 
 import express from 'express';
-import { initDbStatement } from './db_init.js';
+import { initDbStatement } from './services/db_init.js';
+import { recoverSystem } from './services/systemRecovery.js';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 import userRoutes from './routes/user.js';
 import adminRoutes from './routes/admin.js';
@@ -21,8 +23,14 @@ const port = 3000;
 // Create database tables if they do not exist
 initDbStatement();
 
+// If the system has no admin, trigger system recovery.
+recoverSystem();
+
 // Middleware to parse JSON
 app.use(express.json());
+
+// Middleware to get cookies
+app.use(cookieParser());
 
 // Middleware to log requests
 app.use(requestLogger);

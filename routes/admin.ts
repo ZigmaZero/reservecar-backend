@@ -2,7 +2,7 @@ import express, { Request, Response, Router } from 'express';
 import jwt from 'jsonwebtoken';
 import db from '../db.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
-import { Admin } from '../interfaces/dbTypes.js';
+import { Admin, JwtPayload } from '../interfaces/dbTypes.js';
 const router: Router = express.Router();
 
 function generateAccessToken(user: Admin): string {
@@ -11,7 +11,7 @@ function generateAccessToken(user: Admin): string {
     throw new Error('TOKEN_SECRET is not set in environment variables.');
   }
 
-  return jwt.sign(user.name, secret, { expiresIn: '1800s' });
+  return jwt.sign({name: user.name} as JwtPayload, secret, { expiresIn: '1800s' });
 }
 
 router.post('/login', (req: Request, res: Response) => {
@@ -34,8 +34,17 @@ router.post('/login', (req: Request, res: Response) => {
 
     // Generate JWT token
     const token = generateAccessToken(admin);
+    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
 
-    res.status(200).json({ message: 'Login successful', adminId: admin.adminId, token });
+    res.cookie('admin_token', token, {
+        path: '/',
+        maxAge: 1800 * 1000, // 30 minutes
+        httpOnly: true, // Always secure from JavaScript
+        sameSite: 'strict',
+        secure: isSecure // Set 'secure' flag only if HTTPS is detected
+    });
+
+    res.status(200).json({ message: 'Login successful' });
   } catch (error) {
     console.error("Error during admin login:", error);
     res.status(500).json({ error: 'Internal Server Error' });

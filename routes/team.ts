@@ -1,5 +1,6 @@
 import express, {Response} from 'express';
 import authenticateToken from '../middlewares/authenticateToken.js';
+import tokenMiddleware from '../middlewares/tokenMiddleware.js';
 import {
   getTeams,
   getTeamsCount,
@@ -13,7 +14,7 @@ import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
 
 const router = express.Router();
 
-router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
   if (page < 1 || pageSize < 1) {
@@ -40,7 +41,7 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
 });
 
 // Get team by ID
-router.get('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/:teamId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const teamId = parseInt(req.params.teamId, 10);
 
   if (isNaN(teamId) || !Number.isInteger(teamId)) {
@@ -64,7 +65,7 @@ router.get('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedR
 });
 
 // Create a new team
-router.post('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.post('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const { name } = req.body;
 
   if (typeof name !== 'string' || name.trim() === '') {
@@ -82,7 +83,7 @@ router.post('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest
 });
 
 // Update a team's name
-router.put('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.put('/:teamId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const teamId = parseInt(req.params.teamId, 10);
   const { name } = req.body;
 
@@ -112,7 +113,7 @@ router.put('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedR
 });
 
 // Delete a team
-router.delete('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:teamId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const teamId = parseInt(req.params.teamId, 10);
 
   if (isNaN(teamId) || !Number.isInteger(teamId)) {
