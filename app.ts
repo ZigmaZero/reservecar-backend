@@ -4,6 +4,7 @@ import express from 'express';
 import { initDbStatement } from './services/db_init.js';
 import { recoverSystem } from './services/systemRecovery.js';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 import userRoutes from './routes/user.js';
 import adminRoutes from './routes/admin.js';
@@ -27,6 +28,9 @@ recoverSystem();
 
 // Middleware to parse JSON
 app.use(express.json());
+
+// Middleware to get cookies
+app.use(cookieParser());
 
 // Middleware to log requests
 app.use(requestLogger);
