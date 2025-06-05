@@ -8,6 +8,11 @@ import {
 } from '../services/reservationService.js';
 import generateAccessToken from '../utils/generateAccessToken.js';
 import setTokenAsCookie from '../utils/setTokenAsCookie.js';
+import tokenMiddleware from '../middlewares/tokenMiddleware.js';
+import authorizeAsEmployee from '../middlewares/authorizeAsEmployee.js';
+import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
+import authenticateToken from '../middlewares/authenticateToken.js';
+import logger from '../logger.js';
 
 const router = express.Router();
 
@@ -39,7 +44,7 @@ router.post('/register', (req: Request, res: Response) => {
 
     res.status(201).json({ success: true });
   } catch (error) {
-    console.error("Error during registration:", error);
+    logger.error("Error during registration:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 })
@@ -65,18 +70,36 @@ router.post('/login', (req: Request, res: Response) => {
 
     res.status(201).json({ success: true });
   } catch (error) {
-    console.error("Error during login:", error);
+    logger.error("Error during login:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
-router.get('/verify', (req: Request, res: Response) => {
-  const { userId } = req.query;
+// Check verification status
+router.get('/verify', tokenMiddleware, authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
+  if(!req.employee)
+  {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    // Return user information
+    res.status(200).json({
+      fullName: req.employee.name,
+      verified: req.employee.verified
+    });
+  } catch (error) {
+    logger.error("Error during verification:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+
 });
 
 // Checkin
-router.post('/checkin', (req: Request, res: Response) => {
-  const { userId, carId } = req.body;
+router.post('/checkin', tokenMiddleware, authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
+  const { carId } = req.body;
+  const userId = req.employee?.userId;
   const checkinTime = new Date().toISOString();
 
   // Input validation
@@ -86,7 +109,7 @@ router.post('/checkin', (req: Request, res: Response) => {
     !Number.isInteger(userId) ||
     !Number.isInteger(carId)
   ) {
-    res.status(400).json({ error: 'Invalid userId or carId. Both must be integers.' });
+    res.status(400).json({ error: 'Invalid User or Car.' });
     return;
   }
 
@@ -106,16 +129,28 @@ router.post('/checkin', (req: Request, res: Response) => {
 
   try {
     const result = createReservation(userId, carId, checkinTime);
-    res.status(201).json({ reservationId: result.lastInsertRowid });
+
+    if (!result || !result.lastInsertRowid) {
+      res.status(500).json({ error: 'Failed to create reservation.' });
+      return;
+    }
+
+    res.status(201).json({ success: true });
   } catch (error) {
-    console.error("Error during check-in:", error);
+    logger.error("Error during check-in:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 
 // Checkout
-router.post('/checkout', (req: Request, res: Response) => {
+router.post('/checkout', tokenMiddleware, authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
   const { reservationId } = req.body;
+  const userId = req.employee?.userId;
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
   const checkoutTime = new Date().toISOString();
 
   // Input validation
@@ -131,11 +166,23 @@ router.post('/checkout', (req: Request, res: Response) => {
     return;
   }
 
+  // Check if the reservation belongs to the user
+  if (reservation.userId !== userId) {
+    res.status(403).json({ error: 'Forbidden.' });
+    return;
+  }
+
+  // Check if the reservation is already checked out
+  if (reservation.checkoutTime) {
+    res.status(400).json({ error: 'Reservation already checked out.' });
+    return;
+  }
+
   try {
     checkoutReservation(reservationId, checkoutTime);
     res.status(200).json({ message: 'Checkout successful.' });
   } catch (error) {
-    console.error("Error during checkout:", error);
+    logger.error("Error during checkout:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
