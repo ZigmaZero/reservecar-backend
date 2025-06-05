@@ -1,11 +1,13 @@
 import express, { Request, Response } from 'express';
-import { getEmployeeById, createEmployee } from '../services/employeeService.js';
+import { getEmployeeById, createEmployee, getEmployeeByName } from '../services/employeeService.js';
 import { getCarById } from '../services/carService.js';
 import { 
   createReservation, 
   getReservationById, 
   checkoutReservation 
 } from '../services/reservationService.js';
+import generateAccessToken from '../utils/generateAccessToken.js';
+import setTokenAsCookie from '../utils/setTokenAsCookie.js';
 
 const router = express.Router();
 
@@ -19,7 +21,23 @@ router.post('/register', (req: Request, res: Response) => {
   // Enter user to database
   try {
     const result = createEmployee(fullName);
-    res.status(201).json({ userId: result.lastInsertRowid });
+    if(!result || !result.lastInsertRowid) {
+      res.status(500).json({ error: 'Failed to register user.' });
+      return;
+    }
+
+    // get user from userId of result
+    const user = getEmployeeById(result.lastInsertRowid as number);
+    if (!user) {
+      res.status(500).json({ error: 'User not found after registration.' });
+      return;
+    }
+
+    // Generate JWT token and set it as a cookie
+    const token = generateAccessToken(user);
+    setTokenAsCookie(token, req, res);
+
+    res.status(201).json({ success: true });
   } catch (error) {
     console.error("Error during registration:", error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -35,13 +53,21 @@ router.post('/login', (req: Request, res: Response) => {
     return;
   }
   // Check if user exists
-  const user = getEmployeeById(Number(fullName));
-  if (!user) {
-    res.status(404).json({ error: 'User not found.' });
-    return;
+  try {
+    const user = getEmployeeByName(fullName);
+    if (!user) {
+      res.status(404).json({ error: 'User not found.' });
+      return;
+    }
+    // Generate JWT token and set it as a cookie
+    const token = generateAccessToken(user);
+    setTokenAsCookie(token, req, res);
+
+    res.status(201).json({ success: true });
+  } catch (error) {
+    console.error("Error during login:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-  // If user exists, return userId
-  res.status(200).json({ userId: user.userId });
 });
 
 router.get('/verify', (req: Request, res: Response) => {

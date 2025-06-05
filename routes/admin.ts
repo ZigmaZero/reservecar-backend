@@ -2,16 +2,9 @@ import express, { Request, Response, Router } from 'express';
 import jwt from 'jsonwebtoken';
 import db from '../db.js';
 import { Admin, JwtPayload } from '../interfaces/dbTypes.js';
+import generateAccessToken from '../utils/generateAccessToken.js';
+import setTokenAsCookie from '../utils/setTokenAsCookie.js';
 const router: Router = express.Router();
-
-function generateAccessToken(user: Admin): string {
-  const secret = process.env.TOKEN_SECRET;
-  if (!secret) {
-    throw new Error('TOKEN_SECRET is not set in environment variables.');
-  }
-
-  return jwt.sign({name: user.name} as JwtPayload, secret, { expiresIn: '1800s' });
-}
 
 router.post('/login', (req: Request, res: Response) => {
   const { name, password } = req.body;
@@ -31,17 +24,9 @@ router.post('/login', (req: Request, res: Response) => {
       return;
     }
 
-    // Generate JWT token
+    // Generate JWT token and set it as a cookie
     const token = generateAccessToken(admin);
-    const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-
-    res.cookie('token', token, {
-        path: '/',
-        maxAge: 1800 * 1000, // 30 minutes
-        httpOnly: true, // Always secure from JavaScript
-        sameSite: 'strict',
-        secure: isSecure // Set 'secure' flag only if HTTPS is detected
-    });
+    setTokenAsCookie(token, req, res);
 
     res.status(200).json({ message: 'Login successful' });
   } catch (error) {
@@ -51,3 +36,5 @@ router.post('/login', (req: Request, res: Response) => {
 });
 
 export default router;
+
+
