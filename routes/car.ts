@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import authenticateToken from '../middlewares/authenticateToken.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
+import tokenMiddleware from '../middlewares/tokenMiddleware.js';
 import {
   getCars,
   getCarsCount,
@@ -14,7 +15,7 @@ import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
 const router = express.Router();
 
 // Get all cars with pagination
-router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
   if (page < 1 || pageSize < 1) {
@@ -41,7 +42,7 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
 });
 
 // Get car by ID
-router.get('/:carId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/:carId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const carId = parseInt(req.params.carId, 10);
 
   if (isNaN(carId) || !Number.isInteger(carId)) {
@@ -65,7 +66,7 @@ router.get('/:carId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRe
 });
 
 // Create a new car
-router.post('/', authenticateToken, authorizeAsAdmin, (req, res) => {
+router.post('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req, res) => {
   const { plateNumber, teamId } = req.body;
 
   if (typeof plateNumber !== 'string' 
@@ -86,7 +87,7 @@ router.post('/', authenticateToken, authorizeAsAdmin, (req, res) => {
 });
 
 // Update a car's plate number and team
-router.put('/:carId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.put('/:carId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const carId = parseInt(req.params.carId, 10);
   const { plateNumber, teamId } = req.body;
 
@@ -116,7 +117,7 @@ router.put('/:carId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRe
 });
 
 // Delete a car
-router.delete('/:carId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.delete('/:carId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const carId = parseInt(req.params.carId, 10);
 
   if (isNaN(carId) || !Number.isInteger(carId)) {
