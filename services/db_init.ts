@@ -1,5 +1,5 @@
-import logger from "./logger.js";
-import db from './db.js';
+import logger from "../logger.js";
+import db from '../db.js';
 import { exit } from "process";
 
 export function initDbStatement() {
@@ -41,6 +41,12 @@ export function initDbStatement() {
             FOREIGN KEY (userId) REFERENCES Employee(userId),
             FOREIGN KEY (carId) REFERENCES Car(carId)
         );
+
+        CREATE TABLE IF NOT EXISTS LineLoginState (
+            state TEXT UNIQUE NOT NULL,
+            createdAt TEXT NOT NULL
+        );
+
         `);
         logger.info('Database tables initialized successfully.');
     }
@@ -48,4 +54,6 @@ export function initDbStatement() {
         logger.error("Error initializing database:", error);
         exit(1);
     }
+
+
 }
