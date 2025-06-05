@@ -1,5 +1,9 @@
 // backend types.
 
+export type JwtPayload = {
+    name: string
+}
+
 export type Employee = {
     userId: number,
     lineId: string,

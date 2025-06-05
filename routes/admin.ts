@@ -2,7 +2,7 @@ import express, { Request, Response, Router } from 'express';
 import jwt from 'jsonwebtoken';
 import db from '../db.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
-import { Admin } from '../interfaces/dbTypes.js';
+import { Admin, JwtPayload } from '../interfaces/dbTypes.js';
 const router: Router = express.Router();
 
 function generateAccessToken(user: Admin): string {
@@ -11,7 +11,7 @@ function generateAccessToken(user: Admin): string {
     throw new Error('TOKEN_SECRET is not set in environment variables.');
   }
 
-  return jwt.sign(user.name, secret, { expiresIn: '1800s' });
+  return jwt.sign({name: user.name} as JwtPayload, secret, { expiresIn: '1800s' });
 }
 
 router.post('/login', (req: Request, res: Response) => {
