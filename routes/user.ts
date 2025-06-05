@@ -76,7 +76,7 @@ router.post('/login', (req: Request, res: Response) => {
 });
 
 // Check verification status
-router.get('/verify', authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
+router.get('/verify', tokenMiddleware, authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
   if(!req.employee)
   {
     res.status(401).json({ error: 'Unauthorized' });
@@ -97,7 +97,7 @@ router.get('/verify', authenticateToken, authorizeAsEmployee, (req: Authenticate
 });
 
 // Checkin
-router.post('/checkin', authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
+router.post('/checkin', tokenMiddleware, authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
   const { carId } = req.body;
   const userId = req.employee?.userId;
   const checkinTime = new Date().toISOString();
@@ -143,7 +143,7 @@ router.post('/checkin', authenticateToken, authorizeAsEmployee, (req: Authentica
 });
 
 // Checkout
-router.post('/checkout', authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
+router.post('/checkout', tokenMiddleware, authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
   const { reservationId } = req.body;
   const userId = req.employee?.userId;
   if (!userId) {
