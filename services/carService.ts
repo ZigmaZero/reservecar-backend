@@ -1,5 +1,5 @@
 import db from '../db.js';
-import { Car, Count } from '../interfaces/dbTypes.js';
+import { Car, Count } from '../interfaces/internalTypes.js';
 import Database from 'better-sqlite3';
 
 export function getCars(pageSize: number, offset: number): Car[] {

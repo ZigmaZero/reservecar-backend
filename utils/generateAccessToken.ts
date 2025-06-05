@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import { Employee, Admin, JwtPayload } from '../interfaces/dbTypes.js';
+import { Employee, Admin, JwtPayload } from '../interfaces/internalTypes.js';
 
 export default function generateAccessToken(user: Employee | Admin): string {
   const secret = process.env.TOKEN_SECRET;

@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import db from '../db.js';
-import { Count, Employee } from '../interfaces/dbTypes.js';
+import { Count, Employee } from '../interfaces/internalTypes.js';
 
 export function getEmployees(pageSize: number, offset: number): Employee[] {
   const stmt = db.prepare<[number, number], Employee>('SELECT * FROM Employee LIMIT ? OFFSET ?');

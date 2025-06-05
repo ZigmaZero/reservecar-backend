@@ -1,4 +1,4 @@
-// backend types.
+// backend types
 
 export type JwtPayload = {
     name: string

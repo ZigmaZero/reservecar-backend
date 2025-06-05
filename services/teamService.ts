@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import db from '../db.js';
-import { Count, Team } from '../interfaces/dbTypes.js';
+import { Count, Team } from '../interfaces/internalTypes.js';
 
 export function getTeams(pageSize: number, offset: number): Team[] {
   const stmt = db.prepare<[number, number], Team>('SELECT * FROM Team LIMIT ? OFFSET ?');

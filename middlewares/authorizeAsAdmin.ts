@@ -1,7 +1,7 @@
 import { NextFunction, Response } from 'express';
 import db from '../db.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
-import { Admin } from '../interfaces/dbTypes.js';
+import { Admin } from '../interfaces/internalTypes.js';
 
 export default function authorizeAsAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   try {

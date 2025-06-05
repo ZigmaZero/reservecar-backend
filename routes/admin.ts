@@ -1,6 +1,6 @@
 import express, { Request, Response, Router } from 'express';
 import db from '../db.js';
-import { Admin, JwtPayload } from '../interfaces/dbTypes.js';
+import { Admin, JwtPayload } from '../interfaces/internalTypes.js';
 import generateAccessToken from '../utils/generateAccessToken.js';
 import setTokenAsCookie from '../utils/setTokenAsCookie.js';
 import logger from '../logger.js';
