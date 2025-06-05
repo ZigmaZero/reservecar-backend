@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { getEmployeeById } from '../services/employeeService.js';
+import { getEmployeeById, createEmployee } from '../services/employeeService.js';
 import { getCarById } from '../services/carService.js';
 import { 
   createReservation, 
@@ -8,6 +8,45 @@ import {
 } from '../services/reservationService.js';
 
 const router = express.Router();
+
+router.post('/register', (req: Request, res: Response) => {
+  const { fullName } = req.body;
+  // Input validation
+  if (typeof fullName !== 'string' || fullName.trim() === '') {
+    res.status(400).json({ error: 'Invalid fullName. It must be a non-empty string.' });
+    return;
+  }
+  // Enter user to database
+  try {
+    const result = createEmployee(fullName);
+    res.status(201).json({ userId: result.lastInsertRowid });
+  } catch (error) {
+    console.error("Error during registration:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+})
+
+router.post('/login', (req: Request, res: Response) => {
+  // TODO: after LINE Login, get userId from LINE API instead.
+  const { fullName } = req.body;
+  // Input validation
+  if (typeof fullName !== 'string' || fullName.trim() === '') {
+    res.status(400).json({ error: 'Invalid fullName. It must be a non-empty string.' });
+    return;
+  }
+  // Check if user exists
+  const user = getEmployeeById(Number(fullName));
+  if (!user) {
+    res.status(404).json({ error: 'User not found.' });
+    return;
+  }
+  // If user exists, return userId
+  res.status(200).json({ userId: user.userId });
+});
+
+router.get('/verify', (req: Request, res: Response) => {
+  const { userId } = req.query;
+});
 
 // Checkin
 router.post('/checkin', (req: Request, res: Response) => {

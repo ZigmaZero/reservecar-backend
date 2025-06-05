@@ -1,7 +1,6 @@
 import express, { Request, Response, Router } from 'express';
 import jwt from 'jsonwebtoken';
 import db from '../db.js';
-import authenticateToken from '../middlewares/authenticateToken.js';
 import { Admin, JwtPayload } from '../interfaces/dbTypes.js';
 const router: Router = express.Router();
 
@@ -36,7 +35,7 @@ router.post('/login', (req: Request, res: Response) => {
     const token = generateAccessToken(admin);
     const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
 
-    res.cookie('admin_token', token, {
+    res.cookie('token', token, {
         path: '/',
         maxAge: 1800 * 1000, // 30 minutes
         httpOnly: true, // Always secure from JavaScript

@@ -7,10 +7,13 @@ export function initDbStatement() {
         db.exec(`
         CREATE TABLE IF NOT EXISTS Employee (
             userId INTEGER PRIMARY KEY,
-            lineId TEXT NOT NULL,
+            lineId TEXT,
             name TEXT NOT NULL,
             verified INTEGER NOT NULL,
             teamId INTEGER,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            deletedAt TEXT,
             FOREIGN KEY (teamId) REFERENCES Team(teamId)
         );
 

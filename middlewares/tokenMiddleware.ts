@@ -3,7 +3,7 @@ import logger from '../logger';
 
 export default function tokenMiddleware(req: Request, res: Response, next: NextFunction) {
     // Extract token from 'admin-token' cookie
-    const token = req.cookies['admin_token'];
+    const token = req.cookies['token'];
 
     if (token) {
         // Attach it to the Authorization header as a Bearer token

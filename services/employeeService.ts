@@ -18,6 +18,11 @@ export function getEmployeeById(userId: number): Employee | undefined {
   return stmt.get(userId);
 }
 
+export function createEmployee(fullName: string): Database.RunResult {
+  const stmt = db.prepare<[string, boolean, string, string], Employee>('INSERT INTO Employee (fullName, verified, createdAt, updatedAt) VALUES (?, ?, ?, ?)');
+  return stmt.run(fullName, false, new Date().toISOString(), new Date().toISOString());
+}
+
 export function verifyEmployee(userId: number): Database.RunResult {
   const stmt = db.prepare('UPDATE Employee SET verified = 1 WHERE userId = ?');
   return stmt.run(userId);
