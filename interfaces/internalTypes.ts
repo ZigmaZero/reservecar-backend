@@ -23,7 +23,7 @@ export type Team = {
 export type Car = {
     carId: number,
     plateNumber: string,
-    teamId: number
+    teamId?: number
 }
 
 export type Admin = {

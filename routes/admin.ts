@@ -1,7 +1,6 @@
 import express, { Request, Response, Router } from 'express';
 import { AdminExternal } from '../interfaces/externalTypes.js';
 import generateAccessToken from '../utils/generateAccessToken.js';
-import setTokenAsCookie from '../utils/setTokenAsCookie.js';
 import { authAdmin } from '../services/adminService.js';
 import logger from '../logger.js';
 const router: Router = express.Router();

@@ -19,20 +19,20 @@ export function getTeamById(teamId: number): Team | undefined {
 }
 
 export function createTeam(name: string): Database.RunResult {
-  const stmt = db.prepare('INSERT INTO Team (name) VALUES (?)');
-  return stmt.run(name);
+  const stmt = db.prepare('INSERT INTO Team (name, createdAt, updatedAt) VALUES (?, ?, ?)');
+  return stmt.run(name, new Date().toISOString(), new Date().toISOString());
 }
 
 export function updateTeam(teamId: number, name: string): Database.RunResult {
-  const stmt = db.prepare('UPDATE Team SET name = ? WHERE teamId = ?');
-  return stmt.run(name, teamId);
+  const stmt = db.prepare('UPDATE Team SET name = ?, updatedAt = ? WHERE teamId = ?');
+  return stmt.run(name, new Date().toISOString(), teamId);
 }
 
 export function deleteTeamAndUnassignMembers(teamId: number): Database.RunResult {
   const transaction = db.transaction((teamId: number) => {
     db.prepare('UPDATE Employee SET teamId = NULL WHERE teamId = ?').run(teamId);
-    const stmt = db.prepare('DELETE FROM Team WHERE teamId = ?');
-    return stmt.run(teamId);
+    const stmt = db.prepare<[string, number], Team>('UPDATE Team SET deletedAt = ? WHERE teamId = ?');
+    return stmt.run(new Date().toISOString(), teamId);
   });
   return transaction(teamId);
 }

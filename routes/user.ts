@@ -7,7 +7,6 @@ import {
   checkoutReservation 
 } from '../services/reservationService.js';
 import generateAccessToken from '../utils/generateAccessToken.js';
-import setTokenAsCookie from '../utils/setTokenAsCookie.js';
 import authorizeAsEmployee from '../middlewares/authorizeAsEmployee.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
@@ -47,16 +46,16 @@ router.post('/login', (req: Request, res: Response) => {
   }
   // Check if user exists
   try {
+    // TODO: change to lineId based verification
     const user = getEmployeeByName(fullName);
     if (!user) {
       res.status(404).json({ error: 'User not found.' });
       return;
     }
-    // Generate JWT token and set it as a cookie
+    // Generate JWT token
     const token = generateAccessToken(user);
-    setTokenAsCookie(token, req, res);
 
-    res.status(201).json({ success: true, verified: user.verified });
+    res.status(201).json({ success: true, token: token, user: user });
   } catch (error) {
     logger.error("Error during login:", error);
     res.status(500).json({ error: 'Internal Server Error' });

@@ -19,20 +19,29 @@ export function initDbStatement() {
 
         CREATE TABLE IF NOT EXISTS Team (
             teamId INTEGER PRIMARY KEY,
-            name TEXT NOT NULL
+            name TEXT NOT NULL,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            deletedAt TEXT,
         );
 
         CREATE TABLE IF NOT EXISTS Car (
             carId INTEGER PRIMARY KEY,
             plateNumber TEXT NOT NULL,
-            teamId INTEGER NOT NULL,
+            teamId INTEGER,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            deletedAt TEXT,
             FOREIGN KEY (teamId) REFERENCES Team(teamId)
         );
 
         CREATE TABLE IF NOT EXISTS Admin (
             adminId INTEGER PRIMARY KEY,
             name TEXT NOT NULL,
-            password TEXT NOT NULL
+            password TEXT NOT NULL,
+            createdAt TEXT NOT NULL,
+            updatedAt TEXT NOT NULL,
+            deletedAt TEXT,
         );
 
         CREATE TABLE IF NOT EXISTS Reservation (
