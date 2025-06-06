@@ -2,12 +2,13 @@ import express, {Response} from 'express';
 import logger from '../logger.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
 import {
-  getTeams,
+  getTeamsPaginated,
   getTeamsCount,
   getTeamById,
   createTeam,
   updateTeam,
-  deleteTeamAndUnassignMembers
+  deleteTeamAndUnassignMembers,
+  getTeams
 } from '../services/teamService.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
@@ -25,7 +26,7 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
 
   try {
     const total = getTeamsCount();
-    const teams = getTeams(pageSize, offset);
+    const teams = getTeamsPaginated(pageSize, offset);
 
     res.status(200).json({
       data: teams,
@@ -34,6 +35,22 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
       pageSize,
       maxPages: Math.max(1, Math.ceil(total / pageSize))
     });
+  } catch (error) {
+    logger.error("Error fetching teams:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Get all teams w/o pagination
+router.get('/all', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const teams = getTeams(); // Fetch all teams w/o pagination
+    if (!teams || teams.length === 0) {
+      res.status(200).json({ teams: [] });
+      return;
+    }
+
+    res.status(200).json(teams);
   } catch (error) {
     logger.error("Error fetching teams:", error);
     res.status(500).json({ error: 'Internal Server Error' });

@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest';
 import { JwtPayload } from '../interfaces/internalTypes';
+import logger from '../logger';
 
 export default function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
@@ -22,6 +23,7 @@ export default function authenticateToken(req: AuthenticatedRequest, res: Respon
   jwt.verify(token, secret, (err, user) => {
     if (err)
     {
+      logger.error("Token verification failed:", err);
       res.sendStatus(403);
       return;
     }

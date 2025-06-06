@@ -1,10 +1,11 @@
 import express, { Request, Response } from 'express';
 import { getEmployeeById, createEmployee, getEmployeeByName } from '../services/employeeService.js';
-import { getCarById } from '../services/carService.js';
+import { getCarById, getCarsByTeam } from '../services/carService.js';
 import { 
   createReservation, 
   getReservationById, 
-  checkoutReservation 
+  checkoutReservation, 
+  getReservationByUser
 } from '../services/reservationService.js';
 import generateAccessToken from '../utils/generateAccessToken.js';
 import authorizeAsEmployee from '../middlewares/authorizeAsEmployee.js';
@@ -55,32 +56,11 @@ router.post('/login', (req: Request, res: Response) => {
     // Generate JWT token
     const token = generateAccessToken(user);
 
-    res.status(201).json({ success: true, token: token, user: user });
+    res.status(200).json({ success: true, token: token, user: user });
   } catch (error) {
     logger.error("Error during login:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
-});
-
-// Check verification status
-router.get('/verify', authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
-  if(!req.employee)
-  {
-    res.status(401).json({ error: 'Unauthorized' });
-    return;
-  }
-
-  try {
-    // Return user information
-    res.status(200).json({
-      fullName: req.employee.name,
-      verified: req.employee.verified
-    });
-  } catch (error) {
-    logger.error("Error during verification:", error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-
 });
 
 // Checkin
@@ -170,6 +150,62 @@ router.post('/checkout', authenticateToken, authorizeAsEmployee, (req: Authentic
     res.status(200).json({ message: 'Checkout successful.' });
   } catch (error) {
     logger.error("Error during checkout:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Get list of cars prioritized by the specified team, if any
+router.get('/cars', authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
+  
+  const userId = req.employee?.userId;
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+
+  try {
+    const user = getEmployeeById(userId);
+    if (!user) {
+      res.status(404).json({ error: 'User not found.' });
+      return;
+    }
+    const teamId = req.query.teamId ? parseInt(req.query.teamId as string, 10) : user.teamId;
+
+    if(!teamId) {
+      res.status(200).json({ cars: [] });
+      return;
+    }
+
+    // Get cars based on user's team
+    const cars = user.teamId ? getCarsByTeam(teamId) : []; // Assuming getCarById can take teamId
+    if (!cars || cars.length === 0) {
+      res.status(200).json({ cars: [] });
+      return;
+    }
+
+    res.status(200).json({ cars: cars });
+  } catch (error) {
+    logger.error("Error fetching cars:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Get list of reservations for the logged-in user
+router.get('/reservations', authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
+  const userId = req.employee?.userId;
+  if (!userId) {
+    res.status(401).json({ error: 'Unauthorized' });
+    return;
+  }
+  try {
+    const reservations = getReservationByUser(userId);
+    if (!reservations || reservations.length === 0) {
+      res.status(200).json({ reservations: [] });
+      return;
+    }
+    res.status(200).json({ reservations: reservations });
+  } catch (error) {
+    logger.error("Error fetching reservations:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

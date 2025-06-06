@@ -23,6 +23,11 @@ export function getReservationById(reservationId: number): Reservation | undefin
   return stmt.get(reservationId);
 }
 
+export function getReservationByUser(userId: number): Reservation[] {
+  const stmt = db.prepare<[number], Reservation>('SELECT * FROM Reservation WHERE userId = ? AND checkoutTime IS NULL');
+  return stmt.all(userId);
+}
+
 export function checkoutReservation(reservationId: number, checkoutTime: string): Database.RunResult {
   const stmt = db.prepare('UPDATE Reservation SET checkoutTime = ? WHERE reservationId = ?');
   return stmt.run(checkoutTime, reservationId);

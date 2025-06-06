@@ -7,6 +7,11 @@ export function getCars(pageSize: number, offset: number): Car[] {
   return stmt.all(pageSize, offset);
 }
 
+export function getCarsByTeam(teamId: number): Car[] {
+  const stmt = db.prepare<[number], Car>('SELECT * FROM Car WHERE teamId = ? AND deletedAt IS NULL');
+  return stmt.all(teamId);
+}
+
 export function getCarsCount(): number {
   const stmt = db.prepare<[], Count>('SELECT COUNT(*) as count FROM Car WHERE deletedAt IS NULL');
   const count = stmt.get();

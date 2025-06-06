@@ -2,7 +2,12 @@ import Database from 'better-sqlite3';
 import db from '../db.js';
 import { Count, Team } from '../interfaces/internalTypes.js';
 
-export function getTeams(pageSize: number, offset: number): Team[] {
+export function getTeams(): Team[] {
+  const stmt = db.prepare<[], Team>('SELECT * FROM Team WHERE deletedAt IS NULL ORDER BY name ASC');
+  return stmt.all();
+}
+
+export function getTeamsPaginated(pageSize: number, offset: number): Team[] {
   const stmt = db.prepare<[number, number], Team>('SELECT * FROM Team LIMIT ? OFFSET ?');
   return stmt.all(pageSize, offset);
 }
