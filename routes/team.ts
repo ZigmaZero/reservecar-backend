@@ -75,7 +75,7 @@ router.post('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest
 
   try {
     const result = createTeam(name);
-    res.status(201).json({ teamId: result.lastInsertRowid, name });
+    res.status(201).json({ success: true });
   } catch (error) {
     logger.error("Error creating team:", error);
     res.status(500).json({ error: 'Internal Server Error' });

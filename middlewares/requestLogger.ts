@@ -10,10 +10,10 @@ declare module 'express-serve-static-core' {
 
 export default function requestLogger(req: Request, res: Response, next: NextFunction) {
   req.log = logger.child({ req: { method: req.method, url: req.url } });
-  req.log.info({ msg: 'Incoming request' });
+  req.log.info(`[${req.method} ${req.url}] - Incoming`);
 
   res.on('finish', () => {
-    req.log!.info({ res: { statusCode: res.statusCode } }, 'Response sent');
+    req.log!.info(`[${req.method} ${req.url}] - ${res.statusCode}`);
   });
 
   next();

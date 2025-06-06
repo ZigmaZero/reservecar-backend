@@ -79,7 +79,7 @@ router.post('/', authenticateToken, authorizeAsAdmin, (req, res) => {
 
   try {
     const result = createCar(plateNumber, teamId);
-    res.status(201).json({ carId: result.lastInsertRowid, plateNumber, teamId });
+    res.status(201).json({ success: true });
   } catch (error) {
     logger.error("Error creating car:", error);
     res.status(500).json({ error: 'Internal Server Error' });
