@@ -2,7 +2,7 @@ import express, { Request, Response, Router } from 'express';
 import { AdminExternal } from '../interfaces/externalTypes.js';
 import generateAccessToken from '../utils/generateAccessToken.js';
 import setTokenAsCookie from '../utils/setTokenAsCookie.js';
-import { getAdminByName } from '../services/adminService.js';
+import { authAdmin } from '../services/adminService.js';
 import logger from '../logger.js';
 const router: Router = express.Router();
 
@@ -16,9 +16,9 @@ router.post('/login', (req: Request, res: Response) => {
   }
 
   try {
-    const admin = getAdminByName(name);
+    const admin = authAdmin(name, password);
 
-    if (!admin || admin.password !== password) {
+    if (!admin) {
       logger.warn(`Failed login attempt for admin: ${name}`);
       res.status(401).json({ error: 'Invalid credentials.' });
       return;
@@ -29,7 +29,7 @@ router.post('/login', (req: Request, res: Response) => {
     res.status(200).json(
       { message: 'Login successful', 
         admin: {
-        adminId: admin.adminId,
+        id: admin.id,
         name: admin.name
         } as AdminExternal,
         token: token

@@ -30,17 +30,6 @@ router.post('/register', (req: Request, res: Response) => {
       return;
     }
 
-    // get user from userId of result
-    const user = getEmployeeById(result.lastInsertRowid as number);
-    if (!user) {
-      res.status(500).json({ error: 'User not found after registration.' });
-      return;
-    }
-
-    // Generate JWT token and set it as a cookie
-    const token = generateAccessToken(user);
-    setTokenAsCookie(token, req, res);
-
     res.status(201).json({ success: true });
   } catch (error) {
     logger.error("Error during registration:", error);

@@ -1,10 +1,11 @@
 import Database from 'better-sqlite3';
 import db from '../db.js';
 import { Count, Employee } from '../interfaces/internalTypes.js';
+import { EmployeeExternal, mapEmployeeToExternal } from '../interfaces/externalTypes.js';
 
-export function getEmployees(pageSize: number, offset: number): Employee[] {
+export function getEmployees(pageSize: number, offset: number): EmployeeExternal[] {
   const stmt = db.prepare<[number, number], Employee>('SELECT * FROM Employee LIMIT ? OFFSET ?');
-  return stmt.all(pageSize, offset);
+  return stmt.all(pageSize, offset).map(employee => mapEmployeeToExternal(employee));
 }
 
 export function getEmployeesCount(): number {
@@ -13,14 +14,16 @@ export function getEmployeesCount(): number {
   return count ? count.count : 0;
 }
 
-export function getEmployeeById(userId: number): Employee | undefined {
+export function getEmployeeById(userId: number): EmployeeExternal | undefined {
   const stmt = db.prepare<[number], Employee>('SELECT * FROM Employee WHERE userId = ?');
-  return stmt.get(userId);
+  const employee = stmt.get(userId);
+  return employee && mapEmployeeToExternal(employee);
 }
 
-export function getEmployeeByName(fullName: string): Employee | undefined {
+export function getEmployeeByName(fullName: string): EmployeeExternal | undefined {
   const stmt = db.prepare<[string], Employee>('SELECT * FROM Employee WHERE fullName = ?');
-  return stmt.get(fullName);
+  const employee = stmt.get(fullName);
+  return employee && mapEmployeeToExternal(employee);
 }
 
 export function createEmployee(fullName: string): Database.RunResult {

@@ -1,33 +1,33 @@
 // frontend types
 
+import { Employee } from "./internalTypes"
+
 export type EmployeeExternal = {
-    userId: number,
+    id: number,
     lineId: string,
     name: string,
     verified: boolean,
     teamId?: number
 }
 
-export type TeamExternal = {
-    teamId: number,
-    name: string
-}
-
-export type CarExternal = {
-    carId: number,
-    plateNumber: string,
-    teamId: number
-}
-
 export type AdminExternal = {
-    adminId: number,
+    id: number,
     name: string
 }
 
-export type ReservationExternal = {
-    reservationId: number,
-    userId: number,
-    carId: number,
-    checkinTime: string, // i am NOT gonna keep this as a Date
-    checkoutTime?: string // screw you
+export function mapEmployeeToExternal(employee: Employee): EmployeeExternal {
+    return {
+        id: employee.userId,
+        lineId: employee.lineId,
+        name: employee.name,
+        verified: employee.verified,
+        teamId: employee.teamId
+    };
+}
+
+export function mapAdminToExternal(admin: { adminId: number, name: string }): AdminExternal {
+    return {
+        id: admin.adminId,
+        name: admin.name
+    };
 }
