@@ -34,7 +34,7 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
       total,
       page,
       pageSize,
-      maxPages: Math.ceil(total / pageSize)
+      maxPages: Math.min(1, Math.ceil(total / pageSize))
     });
   } catch (error) {
     logger.error("Error fetching employees:", error);
