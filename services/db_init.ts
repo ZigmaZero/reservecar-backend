@@ -6,7 +6,7 @@ export function initDbStatement() {
     try {
         db.exec(`
         CREATE TABLE IF NOT EXISTS Employee (
-            userId INTEGER PRIMARY KEY,
+            userId INTEGER PRIMARY KEY AUTOINCREMENT,
             lineId TEXT,
             name TEXT NOT NULL,
             verified INTEGER NOT NULL,
@@ -18,15 +18,15 @@ export function initDbStatement() {
         );
 
         CREATE TABLE IF NOT EXISTS Team (
-            teamId INTEGER PRIMARY KEY,
+            teamId INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             createdAt TEXT NOT NULL,
             updatedAt TEXT NOT NULL,
-            deletedAt TEXT,
+            deletedAt TEXT
         );
 
         CREATE TABLE IF NOT EXISTS Car (
-            carId INTEGER PRIMARY KEY,
+            carId INTEGER PRIMARY KEY AUTOINCREMENT,
             plateNumber TEXT NOT NULL,
             teamId INTEGER,
             createdAt TEXT NOT NULL,
@@ -36,16 +36,16 @@ export function initDbStatement() {
         );
 
         CREATE TABLE IF NOT EXISTS Admin (
-            adminId INTEGER PRIMARY KEY,
+            adminId INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             password TEXT NOT NULL,
             createdAt TEXT NOT NULL,
             updatedAt TEXT NOT NULL,
-            deletedAt TEXT,
+            deletedAt TEXT
         );
 
         CREATE TABLE IF NOT EXISTS Reservation (
-            reservationId INTEGER PRIMARY KEY,
+            reservationId INTEGER PRIMARY KEY AUTOINCREMENT,
             userId INTEGER NOT NULL,
             carId INTEGER NOT NULL,
             checkinTime TEXT NOT NULL,

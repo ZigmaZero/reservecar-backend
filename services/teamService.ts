@@ -31,6 +31,7 @@ export function updateTeam(teamId: number, name: string): Database.RunResult {
 export function deleteTeamAndUnassignMembers(teamId: number): Database.RunResult {
   const transaction = db.transaction((teamId: number) => {
     db.prepare('UPDATE Employee SET teamId = NULL WHERE teamId = ?').run(teamId);
+    db.prepare('UPDATE Car SET teamId = NULL WHERE teamId = ?').run(teamId);
     const stmt = db.prepare<[string, number], Team>('UPDATE Team SET deletedAt = ? WHERE teamId = ?');
     return stmt.run(new Date().toISOString(), teamId);
   });

@@ -6,7 +6,8 @@ import {
   getEmployeesCount,
   getEmployeeById,
   verifyEmployee,
-  assignEmployeeToTeam
+  removeEmployee,
+  updateEmployee
 } from '../services/employeeService.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
@@ -90,32 +91,57 @@ router.put('/:userId/verify', authenticateToken, authorizeAsAdmin, (req: Authent
   }
 });
 
-// Assign employee to team (PUT)
-router.put('/:userId/team', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+// General update employee (PUT)
+router.put('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const userId = parseInt(req.params.userId, 10);
-  const { teamId } = req.body;
-
-  if (
-    isNaN(userId) ||
-    !Number.isInteger(userId) ||
-    isNaN(teamId) ||
-    !Number.isInteger(teamId)
-  ) {
-    res.status(400).json({ error: 'Invalid userId or teamId. Both must be integers.' });
+  const { name, lineId, teamId } = req.body;
+  if (isNaN(userId) || !Number.isInteger(userId)) {
+    res.status(400).json({ error: 'Invalid userId. It must be an integer.' });
     return;
   }
-
+  if (typeof name !== 'string' || name.trim() === '') {
+    res.status(400).json({ error: 'Invalid name. It must be a non-empty string.' });
+    return;
+  }
+  if (lineId && typeof lineId !== 'string') {
+    res.status(400).json({ error: 'Invalid lineId. It must be a string.' });
+    return;
+  }
+  if (teamId && (isNaN(teamId) || !Number.isInteger(teamId))) {
+    res.status(400).json({ error: 'Invalid teamId. It must be an integer.' });
+    return;
+  }
   try {
-    const result = assignEmployeeToTeam(userId, teamId);
+    const result = updateEmployee(userId, name, lineId, teamId);
+    if (result.changes === 0) {
+      res.status(404).json({ error: 'Employee not found.' });
+      return;
+    }
+    res.status(200).json({ message: 'Employee updated successfully.' });
+  } catch (error) {
+    logger.error("Error updating employee:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Delete an employee (DELETE)
+router.delete('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+  const userId = parseInt(req.params.userId, 10);
+  if (isNaN(userId) || !Number.isInteger(userId)) {
+    res.status(400).json({ error: 'Invalid userId. It must be an integer.' });
+    return;
+  }
+  try {
+    const result = removeEmployee(userId);
 
     if (result.changes === 0) {
       res.status(404).json({ error: 'Employee not found.' });
       return;
     }
 
-    res.status(200).json({ message: 'Employee assigned to team successfully.' });
+    res.status(200).json({ message: 'Employee deleted successfully.' });
   } catch (error) {
-    logger.error("Error assigning employee to team:", error);
+    logger.error("Error deleting employee:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

@@ -11,6 +11,7 @@ import {
   deleteCar
 } from '../services/carService.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
+import { getTeamById } from '../services/teamService.js';
 
 const router = express.Router();
 
@@ -74,6 +75,12 @@ router.post('/', authenticateToken, authorizeAsAdmin, (req, res) => {
       || typeof teamId !== 'number' 
       || !Number.isInteger(teamId)) {
     res.status(400).json({ error: 'Invalid plateNumber or teamId.' });
+    return;
+  }
+
+  const team = getTeamById(teamId);
+  if(!team) {
+    res.status(404).json({ error: 'Team not found.' });
     return;
   }
 
