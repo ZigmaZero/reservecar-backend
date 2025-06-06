@@ -1,7 +1,6 @@
 import express, { Response } from 'express';
 import logger from '../logger.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
-import tokenMiddleware from '../middlewares/tokenMiddleware.js';
 import {
   getReservations,
   getReservationsCount,
@@ -13,7 +12,7 @@ import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
 const router = express.Router();
 
 // Get all reservations with pagination
-router.get('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
   if (page < 1 || pageSize < 1) {
@@ -40,7 +39,7 @@ router.get('/', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: Auth
 });
 
 // Get reservation by ID
-router.get('/:reservationId', tokenMiddleware, authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+router.get('/:reservationId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const reservationId = parseInt(req.params.reservationId, 10);
 
   if (isNaN(reservationId) || !Number.isInteger(reservationId)) {
