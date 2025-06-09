@@ -1,33 +1,38 @@
-// frontend types
-
-import { Employee } from "./internalTypes"
+// Internal types used for basic data manipulation, response types will be separate
 
 export type EmployeeExternal = {
-    id: number,
+    id?: number,
     lineId: string,
     name: string,
     verified: boolean,
-    teamId?: number
+    teamId?: number,
+    teamName?: string // easy lookup for UI
 }
 
-export type AdminExternal = {
-    id: number,
+export type TeamExternal = {
+    id?: number,
     name: string
 }
 
-export function mapEmployeeToExternal(employee: Employee): EmployeeExternal {
-    return {
-        id: employee.userId,
-        lineId: employee.lineId,
-        name: employee.name,
-        verified: employee.verified,
-        teamId: employee.teamId
-    };
+export type CarExternal = {
+    id?: number,
+    plateNumber: string,
+    teamId?: number,
+    teamName?: string // easy lookup for UI
 }
 
-export function mapAdminToExternal(admin: { adminId: number, name: string }): AdminExternal {
-    return {
-        id: admin.adminId,
-        name: admin.name
-    };
+export type AdminExternal = {
+    id?: number,
+    name: string
+}
+
+export type ReservationExternal = {
+    id?: number,
+    userId: number,
+    user: string, // easy lookup for UI
+    carId: number,
+    car: string, // easy lookup for UI
+    description: string,
+    checkinTime: string,
+    checkoutTime?: string
 }
