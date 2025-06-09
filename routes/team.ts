@@ -43,7 +43,7 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
 });
 
 // Get all teams w/o pagination
-router.get('/all', authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
+router.get('/all', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
   try {
     const teams = getTeams(); // Fetch all teams w/o pagination
     if (!teams || teams.length === 0) {
