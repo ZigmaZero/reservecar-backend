@@ -1,4 +1,4 @@
-// backend types
+// JWT and SQL types for application
 
 export type JwtPayload = {
     name: string

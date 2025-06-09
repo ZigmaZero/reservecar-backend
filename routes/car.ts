@@ -86,6 +86,10 @@ router.post('/', authenticateToken, authorizeAsAdmin, (req, res) => {
 
   try {
     const result = createCar(plateNumber, teamId);
+    if(result.changes === 0) {
+      res.status(400).json({ error: 'Failed to create car. Please check the input.' });
+      return;
+    }
     res.status(201).json({ success: true });
   } catch (error) {
     logger.error("Error creating car:", error);

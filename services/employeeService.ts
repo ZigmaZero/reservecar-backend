@@ -1,11 +1,24 @@
 import Database from 'better-sqlite3';
 import db from '../db.js';
 import { Count, Employee } from '../interfaces/internalTypes.js';
-import { EmployeeExternal, mapEmployeeToExternal } from '../interfaces/externalTypes.js';
+import { EmployeeExternal } from '../interfaces/externalTypes.js';
 
+// Get all employees with teamName
 export function getEmployees(pageSize: number, offset: number): EmployeeExternal[] {
-  const stmt = db.prepare<[number, number], Employee>('SELECT * FROM Employee WHERE deletedAt IS NULL LIMIT ? OFFSET ?');
-  return stmt.all(pageSize, offset).map(employee => mapEmployeeToExternal(employee));
+  const stmt = db.prepare<[number, number], EmployeeExternal>(`
+    SELECT 
+      Employee.userId AS id,
+      Employee.lineId,
+      Employee.name,
+      Employee.verified,
+      Employee.teamId,
+      Team.name AS teamName
+    FROM Employee
+    LEFT JOIN Team ON Employee.teamId = Team.teamId
+    WHERE Employee.deletedAt IS NULL
+    LIMIT ? OFFSET ?
+  `);
+  return stmt.all(pageSize, offset);
 }
 
 export function getEmployeesCount(): number {
@@ -14,16 +27,38 @@ export function getEmployeesCount(): number {
   return count ? count.count : 0;
 }
 
+// Get employee by id with teamName
 export function getEmployeeById(userId: number): EmployeeExternal | undefined {
-  const stmt = db.prepare<[number], Employee>('SELECT * FROM Employee WHERE userId = ? AND deletedAt IS NULL');
-  const employee = stmt.get(userId);
-  return employee && mapEmployeeToExternal(employee);
+  const stmt = db.prepare<[number], EmployeeExternal>(`
+    SELECT 
+      Employee.userId AS id,
+      Employee.lineId,
+      Employee.name,
+      Employee.verified,
+      Employee.teamId,
+      Team.name AS teamName
+    FROM Employee
+    LEFT JOIN Team ON Employee.teamId = Team.teamId
+    WHERE Employee.userId = ? AND Employee.deletedAt IS NULL
+  `);
+  return stmt.get(userId);
 }
 
+// Get employee by name with teamName
 export function getEmployeeByName(fullName: string): EmployeeExternal | undefined {
-  const stmt = db.prepare<[string], Employee>('SELECT * FROM Employee WHERE name = ? AND deletedAt IS NULL');
-  const employee = stmt.get(fullName);
-  return employee && mapEmployeeToExternal(employee);
+  const stmt = db.prepare<[string], EmployeeExternal>(`
+    SELECT 
+      Employee.userId AS id,
+      Employee.lineId,
+      Employee.name,
+      Employee.verified,
+      Employee.teamId,
+      Team.name AS teamName
+    FROM Employee
+    LEFT JOIN Team ON Employee.teamId = Team.teamId
+    WHERE Employee.name = ? AND Employee.deletedAt IS NULL
+  `);
+  return stmt.get(fullName);
 }
 
 export function createEmployee(fullName: string): Database.RunResult {

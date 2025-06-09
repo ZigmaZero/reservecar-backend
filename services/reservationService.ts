@@ -1,9 +1,24 @@
 import Database from 'better-sqlite3';
 import db from '../db.js';
 import { Count, Reservation } from '../interfaces/internalTypes.js';
+import { ReservationExternal } from '../interfaces/externalTypes.js';
 
-export function getReservations(pageSize: number, offset: number): Reservation[] {
-  const stmt = db.prepare<[number, number], Reservation>('SELECT * FROM Reservation LIMIT ? OFFSET ?');
+export function getReservations(pageSize: number, offset: number): ReservationExternal[] {
+  const stmt = db.prepare<[number, number], ReservationExternal>(`
+    SELECT
+      Reservation.reservationId AS id,
+      Reservation.userId AS userId,
+      Employee.name AS user,
+      Reservation.carId AS carId,
+      Car.plateNumber AS car,
+      Reservation.description AS description,
+      Reservation.checkinTime AS checkinTime,
+      Reservation.checkoutTime AS checkoutTime
+    FROM Reservation
+    LEFT JOIN Employee ON Reservation.userId = Employee.userId
+    LEFT JOIN Car ON Reservation.carId = Car.carId
+    LIMIT ? OFFSET ?
+  `);
   return stmt.all(pageSize, offset);
 }
 
@@ -18,13 +33,43 @@ export function createReservation(userId: number, carId: number, description: st
   return stmt.run(userId, carId, description, checkinTime);
 }
 
-export function getReservationById(reservationId: number): Reservation | undefined {
-  const stmt = db.prepare<[number], Reservation>('SELECT * FROM Reservation WHERE reservationId = ?')
+export function getReservationById(reservationId: number): ReservationExternal | undefined {
+  const stmt = db.prepare<[number], ReservationExternal>(`
+    SELECT
+      Reservation.reservationId AS id,
+      Reservation.userId AS userId,
+      Employee.name AS user,
+      Reservation.carId AS carId,
+      Car.plateNumber AS car,
+      Reservation.description AS description,
+      Reservation.checkinTime AS checkinTime,
+      Reservation.checkoutTime AS checkoutTime
+    FROM Reservation
+    LEFT JOIN Employee ON Reservation.userId = Employee.userId
+    LEFT JOIN Car ON Reservation.carId = Car.carId
+    WHERE Reservation.reservationId = ?
+  `);
   return stmt.get(reservationId);
 }
 
-export function getReservationByUser(userId: number): Reservation[] {
-  const stmt = db.prepare<[number], Reservation>('SELECT * FROM Reservation WHERE userId = ? AND checkoutTime IS NULL');
+export function getReservationByUser(userId: number): ReservationExternal[] {
+  const stmt = db.prepare<[number], ReservationExternal>(`
+    SELECT
+      Reservation.reservationId AS id,
+      Reservation.userId AS userId,
+      Employee.name AS user,
+      Reservation.carId AS carId,
+      Car.plateNumber AS car,
+      Reservation.description AS description,
+      Reservation.checkinTime AS checkinTime,
+      Reservation.checkoutTime AS checkoutTime
+    FROM Reservation
+    LEFT JOIN Employee ON Reservation.userId = Employee.userId
+    LEFT JOIN Car ON Reservation.carId = Car.carId
+    WHERE Reservation.userId = ?
+    AND Reservation.checkoutTime IS NULL
+    ORDER BY Reservation.reservationId DESC
+  `);
   return stmt.all(userId);
 }
 

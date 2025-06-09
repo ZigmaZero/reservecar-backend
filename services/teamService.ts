@@ -1,15 +1,22 @@
 import Database from 'better-sqlite3';
 import db from '../db.js';
 import { Count, Team } from '../interfaces/internalTypes.js';
+import { TeamExternal } from '../interfaces/externalTypes.js';
 
-export function getTeams(): Team[] {
+export function getTeams(): TeamExternal[] {
   const stmt = db.prepare<[], Team>('SELECT * FROM Team WHERE deletedAt IS NULL ORDER BY name ASC');
-  return stmt.all();
+  return stmt.all().map(team => ({
+    id: team.teamId,
+    name: team.name
+  }));
 }
 
-export function getTeamsPaginated(pageSize: number, offset: number): Team[] {
+export function getTeamsPaginated(pageSize: number, offset: number): TeamExternal[] {
   const stmt = db.prepare<[number, number], Team>('SELECT * FROM Team WHERE deletedAt IS NULL LIMIT ? OFFSET ?');
-  return stmt.all(pageSize, offset);
+  return stmt.all(pageSize, offset).map(team => ({
+    id: team.teamId,
+    name: team.name
+  }));
 }
 
 export function getTeamsCount(): number {
@@ -18,9 +25,10 @@ export function getTeamsCount(): number {
   return count ? count.count : 0;
 }
 
-export function getTeamById(teamId: number): Team | undefined {
+export function getTeamById(teamId: number): TeamExternal | undefined {
   const stmt = db.prepare<number, Team>('SELECT * FROM Team WHERE teamId = ? AND deletedAt IS NULL');
-  return stmt.get(teamId);
+  const team = stmt.get(teamId)
+  return team ? { id: team.teamId, name: team.name } : undefined;
 }
 
 export function createTeam(name: string): Database.RunResult {

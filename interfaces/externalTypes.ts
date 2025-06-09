@@ -1,4 +1,4 @@
-// Internal types used for basic data manipulation, response types will be separate
+// API types for the application
 
 export type EmployeeExternal = {
     id?: number,
