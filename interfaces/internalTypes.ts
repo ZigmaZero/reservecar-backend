@@ -39,6 +39,7 @@ export type Reservation = {
     reservationId: number,
     userId: number,
     carId: number,
+    description: string,
     checkinTime: string,
     checkoutTime?: string
 }
