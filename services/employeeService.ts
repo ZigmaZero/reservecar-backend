@@ -32,13 +32,13 @@ export function createEmployee(fullName: string): Database.RunResult {
 }
 
 export function verifyEmployee(userId: number): Database.RunResult {
-  const stmt = db.prepare('UPDATE Employee SET verified = 1 WHERE userId = ?');
+  const stmt = db.prepare('UPDATE Employee SET verified = 1 WHERE userId = ? AND deletedAt IS NULL');
   return stmt.run(userId);
 }
 
 export function updateEmployee(userId: number, name: string, lineId?: string, teamId?: number): Database.RunResult {
   const stmt = db.prepare<[string, string | undefined, number | undefined, string, number], Employee>(
-    'UPDATE Employee SET name = ?, lineId = ?, teamId = ?, updatedAt = ? WHERE userId = ?'
+    'UPDATE Employee SET name = ?, lineId = ?, teamId = ?, updatedAt = ? WHERE userId = ? AND deletedAt IS NULL'
   );
   return stmt.run(name, lineId, teamId, new Date().toISOString(), userId);
 }
