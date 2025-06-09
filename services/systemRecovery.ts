@@ -3,6 +3,7 @@ import db from '../db.js';
 import { Admin } from '../interfaces/internalTypes.js';
 import logger from '../logger.js';
 import { exit } from 'process';
+import { hashPassword, comparePassword } from '../utils/passwordHash.js';
 
 export function recoverSystem(): void {
     try {
@@ -17,10 +18,15 @@ export function recoverSystem(): void {
             // Generate a default admin with randomized password
             const password = Math.random().toString(36).slice(-8); // Random 8-character password
             logger.info(`Creating default admin with username 'admin' and password '${password}'`);
-            // TODO: Hash here
-            createAdminStmt.run('admin', password, new Date().toISOString(), new Date().toISOString()); // Admin credentials
-        
-            logger.info('System recovery complete: Default admin created.');
+            const hash = hashPassword(password);
+            const match = comparePassword(password, hash);
+            if (!match) {
+                logger.error('Unexpected password mismatch failed during system recovery.');
+                exit(1);
+            }
+            createAdminStmt.run('admin', hash, new Date().toISOString(), new Date().toISOString());
+            logger.info('System recovery completed: Default admin created successfully.');
+            
         } else {
             logger.info('System recovery not needed: Admin already exists.');
         }
