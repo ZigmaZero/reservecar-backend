@@ -13,9 +13,9 @@ export function getReservationsCount(): number {
   return count ? count.count : 0;
 }
 
-export function createReservation(userId: number, carId: number, checkinTime: string): Database.RunResult {
-  const stmt = db.prepare('INSERT INTO Reservation (userId, carId, checkinTime) VALUES (?, ?, ?)');
-  return stmt.run(userId, carId, checkinTime);
+export function createReservation(userId: number, carId: number, description: string, checkinTime: string): Database.RunResult {
+  const stmt = db.prepare('INSERT INTO Reservation (userId, carId, description, checkinTime) VALUES (?, ?, ?, ?)');
+  return stmt.run(userId, carId, description, checkinTime);
 }
 
 export function getReservationById(reservationId: number): Reservation | undefined {

@@ -48,6 +48,7 @@ export function initDbStatement() {
             reservationId INTEGER PRIMARY KEY AUTOINCREMENT,
             userId INTEGER NOT NULL,
             carId INTEGER NOT NULL,
+            description TEXT NOT NULL,
             checkinTime TEXT NOT NULL,
             checkoutTime TEXT,
             FOREIGN KEY (userId) REFERENCES Employee(userId),

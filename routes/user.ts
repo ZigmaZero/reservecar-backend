@@ -65,7 +65,7 @@ router.post('/login', (req: Request, res: Response) => {
 
 // Checkin
 router.post('/checkin', authenticateToken, authorizeAsEmployee, (req: AuthenticatedRequest, res: Response) => {
-  const { carId } = req.body;
+  const { carId, description } = req.body;
   const userId = req.employee?.userId;
   const checkinTime = new Date().toISOString();
 
@@ -73,6 +73,8 @@ router.post('/checkin', authenticateToken, authorizeAsEmployee, (req: Authentica
   if (
     typeof userId !== 'number' ||
     typeof carId !== 'number' ||
+    typeof description !== 'string' ||
+    description.trim() === '' ||
     !Number.isInteger(userId) ||
     !Number.isInteger(carId)
   ) {
@@ -95,7 +97,7 @@ router.post('/checkin', authenticateToken, authorizeAsEmployee, (req: Authentica
   }
 
   try {
-    const result = createReservation(userId, carId, checkinTime);
+    const result = createReservation(userId, carId, description, checkinTime);
 
     if (!result || !result.lastInsertRowid) {
       res.status(500).json({ error: 'Failed to create reservation.' });
