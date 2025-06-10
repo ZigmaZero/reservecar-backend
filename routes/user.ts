@@ -22,6 +22,14 @@ router.post('/register', (req: Request, res: Response) => {
     res.status(400).json({ error: 'Invalid fullName. It must be a non-empty string.' });
     return;
   }
+
+  // Duplicate check
+  const existingUser = getEmployeeByName(fullName);
+  if (existingUser) {
+    res.status(409).json({ error: 'User already exists.' });
+    return;
+  }
+
   // Enter user to database
   try {
     const result = createEmployee(fullName);

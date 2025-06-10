@@ -1,7 +1,20 @@
+# node_modules
 node_modules
+
+# sqlite database
 *.db
 *.db-shm
 *.db-wal
+
+# environment variables
 .env
 
+# build
 dist
+
+# server key and certificate
+server.key
+server.cert
+
+# frontend built
+frontend/dist
