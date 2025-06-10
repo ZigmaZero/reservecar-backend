@@ -17,7 +17,6 @@ import requestLogger from './middlewares/requestLogger.js';
 import errorLogger from './middlewares/errorLogger.js';
 
 import fs from 'fs';
-import ngrok from 'ngrok';
 import listEndpoints from 'express-list-endpoints';
 import logger from './logger.js';
 
@@ -69,20 +68,13 @@ app.get('/', (req, res) => {
   res.send('Welcome to the ReserveCar API!');
 });
 
-logger.info("Pass routes")
-
 console.log("Registered routes:");
 listEndpoints(app).forEach((route) => {
   console.log(`${route.methods.join(', ')} ${route.path}`);
 });
 
-
-logger.info("Pass list-endpoints")
-
 // Serve static files from the frontend build directory
 app.use(express.static('frontend/dist'));
-
-logger.info("Pass static files")
 
 const frontendRoutes = [
   '/verify',
@@ -102,8 +94,6 @@ frontendRoutes.forEach(route => {
   });
 });
 
-logger.info("Pass frontend routes")
-
 app.listen(port, '0.0.0.0', async () => {
-  console.log(`Server listening on port ${port}`);
+  logger.info(`Server listening on port ${port}`);
 });
