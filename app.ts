@@ -104,6 +104,6 @@ frontendRoutes.forEach(route => {
 
 logger.info("Pass frontend routes")
 
-app.listen(port, async () => {
+app.listen(port, '0.0.0.0', async () => {
   console.log(`Server listening on port ${port}`);
 });
