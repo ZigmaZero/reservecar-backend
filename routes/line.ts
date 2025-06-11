@@ -84,4 +84,28 @@ router.post('/auth', async (req: Request, res: Response) => {
     }
 });
 
+router.get('/access', async (req: Request, res: Response) => {
+    const access_token = req.query.access_token;
+    if(!access_token)
+    {
+        res.status(401).json({message: "Unauthorized"});
+        return;
+    }
+
+    try {
+        const response = await axios.get('https://api.line.me/v2/profile', {
+            headers: {
+                'Authorization': `Bearer ${access_token}`
+            }
+        });
+        res.status(200).json(response.data);
+    }
+    catch (error: any) {
+        res.status(500).json({
+            message: "Profile access failed",
+            error: error.response?.data || error.message
+        })
+    }
+})
+
 export default router;
