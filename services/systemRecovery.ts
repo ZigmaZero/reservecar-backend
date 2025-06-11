@@ -1,4 +1,3 @@
-import Database from 'better-sqlite3';
 import db from '../db.js';
 import { Admin } from '../interfaces/internalTypes.js';
 import logger from '../logger.js';

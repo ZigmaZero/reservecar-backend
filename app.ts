@@ -12,6 +12,7 @@ import employeeRoutes from './routes/employee.js';
 import teamRoutes from './routes/team.js';
 import carRoutes from './routes/car.js';
 import reservationRoutes from './routes/reservation.js';
+import lineRoutes from './routes/line.js';
 
 import requestLogger from './middlewares/requestLogger.js';
 import errorLogger from './middlewares/errorLogger.js';
@@ -63,6 +64,7 @@ app.use('/api/employees', employeeRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api/cars', carRoutes);
 app.use('/api/reservations', reservationRoutes);
+app.use('/api/line', lineRoutes);
 
 app.get('/', (req, res) => {
   res.send('Welcome to the ReserveCar API!');

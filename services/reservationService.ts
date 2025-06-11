@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import db from '../db.js';
-import { Count, Reservation } from '../interfaces/internalTypes.js';
+import { Count } from '../interfaces/internalTypes.js';
 import { ReservationExternal } from '../interfaces/externalTypes.js';
 
 export function getReservations(pageSize: number, offset: number): ReservationExternal[] {
