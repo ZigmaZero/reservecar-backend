@@ -4,21 +4,30 @@ import generateRandomState from '../utils/generateRandomState';
 
 const router = express.Router();
 
-// Gets a (freshly created) LINE Login state from the database
+function generateUniqueState(maxTries = 10): string | null {
+    for (let i = 0; i < maxTries; i++) {
+        const state = generateRandomState();
+        if (!getState(state)) {
+            return state;
+        }
+    }
+    return null;
+}
+
 router.get(`/`, (req: Request, res: Response) => {
-    var state = generateRandomState();
-    while(getState(state))
-    {
-        state = generateRandomState();
+    const state = generateUniqueState();
+    if (!state) {
+        res.status(500).json({ message: "Something impossible occurred. Try again later." });
+        return;
     }
     storeState(state);
-    res.status(200).json({state});
-})
+    res.status(200).json({ state });
+});
 
 // If the state exists in the database, returns true and deletes it
 // Else returns false
-router.delete('/', (req: Request, res: Response) => {
-    const state = req.body.state;
+router.delete('/:state', (req: Request, res: Response) => {
+    const state = req.params.state;
     if (!state) {
         res.status(400).json({ success: false, message: "State is required" });
         return;

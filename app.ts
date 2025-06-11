@@ -4,7 +4,6 @@ import express from 'express';
 import { initDbStatement } from './services/db_init.js';
 import { recoverSystem } from './services/systemRecovery.js';
 import cors from 'cors';
-import cookieParser from 'cookie-parser';
 
 import userRoutes from './routes/user.js';
 import adminRoutes from './routes/admin.js';
@@ -18,7 +17,6 @@ import requestLogger from './middlewares/requestLogger.js';
 import errorLogger from './middlewares/errorLogger.js';
 
 import fs from 'fs';
-import listEndpoints from 'express-list-endpoints';
 import logger from './logger.js';
 
 const app = express();
@@ -38,9 +36,6 @@ recoverSystem();
 
 // Middleware to parse JSON
 app.use(express.json());
-
-// Middleware to get cookies
-app.use(cookieParser());
 
 // Middleware to log requests
 app.use(requestLogger);
@@ -70,11 +65,6 @@ app.get('/', (req, res) => {
   res.send('Welcome to the ReserveCar API!');
 });
 
-console.log("Registered routes:");
-listEndpoints(app).forEach((route) => {
-  console.log(`${route.methods.join(', ')} ${route.path}`);
-});
-
 // Serve static files from the frontend build directory
 app.use(express.static('frontend/dist'));
 
@@ -88,6 +78,9 @@ const frontendRoutes = [
   '/checkin',
   '/checkout',
   '/menu',
+  '/line/access',
+  '/line/begin',
+  '/line/callback'
 ];
 
 frontendRoutes.forEach(route => {
