@@ -44,7 +44,9 @@ router.delete('/:state', (req: Request, res: Response) => {
     }
 })
 
-// process the auth code and returns access token (and related)
+// ...existing imports...
+
+// process the auth code, exchange for access token, and fetch profile in one endpoint
 router.post('/auth', async (req: Request, res: Response) => {
     const { code, redirect_uri } = req.body;
     const grant_type = "authorization_code";
@@ -70,42 +72,31 @@ router.post('/auth', async (req: Request, res: Response) => {
     });
 
     try {
-        const response = await axios.post(
+        // Exchange code for access token
+        const tokenResponse = await axios.post(
             'https://api.line.me/oauth2/v2.1/token',
             params.toString(),
             { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
         );
-        res.status(200).json(response.data);
-    } catch (error: any) {
-        res.status(500).json({
-            message: `Token exchange failed`,
-            error: error.response?.data || error.message
-        });
-    }
-});
+        const access_token = tokenResponse.data.access_token;
 
-router.get('/access', async (req: Request, res: Response) => {
-    const access_token = req.query.access_token;
-    if(!access_token)
-    {
-        res.status(401).json({message: "Unauthorized"});
-        return;
-    }
-
-    try {
-        const response = await axios.get('https://api.line.me/v2/profile', {
+        // Fetch profile using the access token
+        const profileResponse = await axios.get('https://api.line.me/v2/profile', {
             headers: {
                 'Authorization': `Bearer ${access_token}`
             }
         });
-        res.status(200).json(response.data);
-    }
-    catch (error: any) {
+
+        // Return profile info (omit access_token if you want)
+        res.status(200).json({
+            profile: profileResponse.data
+        });
+    } catch (error: any) {
         res.status(500).json({
-            message: "Profile access failed",
+            message: `Token exchange/profile fetch failed`,
             error: error.response?.data || error.message
-        })
+        });
     }
-})
+});
 
 export default router;
