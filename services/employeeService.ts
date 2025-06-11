@@ -45,7 +45,7 @@ export function getEmployeeById(userId: number): EmployeeExternal | undefined {
 }
 
 // Get employee by name with teamName
-export function getEmployeeByName(fullName: string): EmployeeExternal | undefined {
+export function getEmployeeByLineId(lineId: string): EmployeeExternal | undefined {
   const stmt = db.prepare<[string], EmployeeExternal>(`
     SELECT 
       Employee.userId AS id,
@@ -56,14 +56,14 @@ export function getEmployeeByName(fullName: string): EmployeeExternal | undefine
       Team.name AS teamName
     FROM Employee
     LEFT JOIN Team ON Employee.teamId = Team.teamId
-    WHERE Employee.name = ? AND Employee.deletedAt IS NULL
+    WHERE Employee.lineId = ? AND Employee.deletedAt IS NULL
   `);
-  return stmt.get(fullName);
+  return stmt.get(lineId);
 }
 
-export function createEmployee(fullName: string): Database.RunResult {
-  const stmt = db.prepare<[string, number, string, string], Employee>('INSERT INTO Employee (name, verified, createdAt, updatedAt) VALUES (?, ?, ?, ?)');
-  return stmt.run(fullName, 0, new Date().toISOString(), new Date().toISOString());
+export function createEmployee(fullName: string, lineId: string): Database.RunResult {
+  const stmt = db.prepare<[string, string, number, string, string], Employee>('INSERT INTO Employee (name, lineId, verified, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?)');
+  return stmt.run(fullName, lineId, 0, new Date().toISOString(), new Date().toISOString());
 }
 
 export function verifyEmployee(userId: number): Database.RunResult {

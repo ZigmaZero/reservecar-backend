@@ -1,5 +1,5 @@
 import express, { Request, Response } from 'express';
-import { getEmployeeById, createEmployee, getEmployeeByName } from '../services/employeeService.js';
+import { getEmployeeById, createEmployee, getEmployeeByLineId } from '../services/employeeService.js';
 import { getCarById, getCarsByTeam } from '../services/carService.js';
 import { 
   createReservation, 
@@ -16,23 +16,21 @@ import logger from '../logger.js';
 const router = express.Router();
 
 router.post('/register', (req: Request, res: Response) => {
-  const { fullName } = req.body;
+  const { fullName, lineId } = req.body;
   // Input validation
   if (typeof fullName !== 'string' || fullName.trim() === '') {
     res.status(400).json({ error: 'Invalid fullName. It must be a non-empty string.' });
     return;
   }
 
-  // Duplicate check
-  const existingUser = getEmployeeByName(fullName);
-  if (existingUser) {
-    res.status(409).json({ error: 'User already exists.' });
+  if (typeof lineId !== 'string' || lineId.trim() === '') {
+    res.status(400).json({ error: 'Invalid fullName. It must be a non-empty string.' });
     return;
   }
 
   // Enter user to database
   try {
-    const result = createEmployee(fullName);
+    const result = createEmployee(fullName, lineId);
     if(!result || !result.lastInsertRowid) {
       res.status(500).json({ error: 'Failed to register user.' });
       return;
@@ -47,16 +45,16 @@ router.post('/register', (req: Request, res: Response) => {
 
 router.post('/login', (req: Request, res: Response) => {
   // TODO: after LINE Login, get userId from LINE API instead.
-  const { fullName } = req.body;
+  const { lineId } = req.body;
   // Input validation
-  if (typeof fullName !== 'string' || fullName.trim() === '') {
+  if (typeof lineId !== 'string' || lineId.trim() === '') {
     res.status(400).json({ error: 'Invalid fullName. It must be a non-empty string.' });
     return;
   }
   // Check if user exists
   try {
     // TODO: change to lineId based verification
-    const user = getEmployeeByName(fullName);
+    const user = getEmployeeByLineId(lineId);
     if (!user) {
       res.status(404).json({ error: 'User not found.' });
       return;
