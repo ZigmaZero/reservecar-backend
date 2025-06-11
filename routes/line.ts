@@ -1,6 +1,7 @@
 import express, { Request, Response, Router } from 'express';
 import { getState, storeState } from '../services/lineService';
 import generateRandomState from '../utils/generateRandomState';
+import axios from 'axios';
 
 const router = express.Router();
 
@@ -42,5 +43,45 @@ router.delete('/:state', (req: Request, res: Response) => {
         return;
     }
 })
+
+// process the auth code and returns access token (and related)
+router.post('/auth', async (req: Request, res: Response) => {
+    const { code, redirect_uri } = req.body;
+    const grant_type = "authorization_code";
+    const client_id = process.env.LINE_CLIENT_ID;
+    const client_secret = process.env.LINE_CLIENT_SECRET;
+
+    if (!code || !redirect_uri) {
+        res.status(400).json({ message: "No code or redirect URI" });
+        return;
+    }
+
+    if (!client_id || !client_secret) {
+        res.status(500).json({ message: "Missing environment variables." });
+        return;
+    }
+
+    const params = new URLSearchParams({
+        grant_type,
+        code,
+        redirect_uri,
+        client_id,
+        client_secret
+    });
+
+    try {
+        const response = await axios.post(
+            'https://api.line.me/oauth2/v2.1/token',
+            params.toString(),
+            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        );
+        res.status(200).json(response.data);
+    } catch (error: any) {
+        res.status(500).json({
+            message: `Token exchange failed`,
+            error: error.response?.data || error.message
+        });
+    }
+});
 
 export default router;
