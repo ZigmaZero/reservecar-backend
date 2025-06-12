@@ -10,8 +10,13 @@ export default function authorizeAsEmployee(req: AuthenticatedRequest, res: Resp
       return;
     }
 
-    const stmt = db.prepare<[string], Employee>('SELECT * FROM Employee WHERE name = ?');
-    const user = stmt.get(req.payload);
+    if (!req.payload.id) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const stmt = db.prepare<[number], Employee>('SELECT * FROM Employee WHERE userId = ?');
+    const user = stmt.get(req.payload.id);
 
     if (!user) {
       res.status(401).json({ error: 'Unauthorized.' });

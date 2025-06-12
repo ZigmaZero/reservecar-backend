@@ -1,8 +1,8 @@
 import {Request} from 'express';
-import { Admin, Employee } from './internalTypes';
+import { Admin, Employee, JwtPayload } from './internalTypes';
 
 export default interface AuthenticatedRequest extends Request {
-  payload?: string;
+  payload?: JwtPayload;
   admin?: Admin;
   employee?: Employee;
 }

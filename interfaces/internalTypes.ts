@@ -1,6 +1,7 @@
 // JWT and SQL types for application
 
 export type JwtPayload = {
+    id?: number,
     name: string
 }
 

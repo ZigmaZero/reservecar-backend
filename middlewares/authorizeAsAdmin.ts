@@ -10,8 +10,13 @@ export default function authorizeAsAdmin(req: AuthenticatedRequest, res: Respons
       return;
     }
 
-    const stmt = db.prepare<[string], Admin>('SELECT * FROM Admin WHERE name = ?');
-    const admin = stmt.get(req.payload);
+    if (!req.payload.id) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    const stmt = db.prepare<[number], Admin>('SELECT * FROM Admin WHERE adminId = ?');
+    const admin = stmt.get(req.payload.id);
 
     if (!admin) {
       res.status(401).json({ error: 'Unauthorized.' });

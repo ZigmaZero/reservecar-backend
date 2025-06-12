@@ -27,7 +27,7 @@ export default function authenticateToken(req: AuthenticatedRequest, res: Respon
       res.sendStatus(403);
       return;
     }
-    req.payload = (user as JwtPayload).name as string;
+    req.payload = user as JwtPayload;
     next();
   });
 }
