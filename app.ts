@@ -61,14 +61,11 @@ app.use('/api/cars', carRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/line', lineRoutes);
 
-app.get('/', (req, res) => {
-  res.send('Welcome to the ReserveCar API!');
-});
-
 // Serve static files from the frontend build directory
 app.use(express.static('frontend/dist'));
 
 const frontendRoutes = [
+  '/',
   '/verify',
   '/login',
   '/register',
