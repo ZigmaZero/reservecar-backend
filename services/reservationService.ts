@@ -22,6 +22,25 @@ export function getReservations(pageSize: number, offset: number): ReservationEx
   return stmt.all(pageSize, offset);
 }
 
+export function getReservationsBetweenTime(startTime: Date, endTime: Date): ReservationExternal[] {
+  const stmt = db.prepare<[string, string], ReservationExternal>(`
+    SELECT
+      Reservation.reservationId AS id,
+      Reservation.userId AS userId,
+      Employee.name AS user,
+      Reservation.carId AS carId,
+      Car.plateNumber AS car,
+      Reservation.description AS description,
+      Reservation.checkinTime AS checkinTime,
+      Reservation.checkoutTime AS checkoutTime
+    FROM Reservation
+    LEFT JOIN Employee ON Reservation.userId = Employee.userId
+    LEFT JOIN Car ON Reservation.carId = Car.carId
+    WHERE Reservation.checkinTime >= ? AND Reservation.checkinTime <= ?
+  `);
+  return stmt.all(startTime.toISOString(), endTime.toISOString());
+}
+
 export function getReservationsCount(): number {
   const stmt = db.prepare<[], Count>('SELECT COUNT(*) as count FROM Reservation');
   const count = stmt.get();

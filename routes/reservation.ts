@@ -4,7 +4,8 @@ import authenticateToken from '../middlewares/authenticateToken.js';
 import {
   getReservations,
   getReservationsCount,
-  getReservationById
+  getReservationById,
+  getReservationsBetweenTime
 } from '../services/reservationService.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
@@ -37,6 +38,17 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+
+// Export all reservations in time range
+router.get('/export', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+  const startTime = req.query.startTime
+    ? new Date(req.query.startTime as string)
+    : new Date('1970-01-01T00:00:00.000Z');
+  const endTime = req.query.endTime
+    ? new Date(req.query.endTime as string)
+    : new Date('9999-12-31T23:59:59.999Z');
+  res.status(200).json(getReservationsBetweenTime(startTime, endTime));
+})
 
 // Get reservation by ID
 router.get('/:reservationId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
