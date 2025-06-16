@@ -44,8 +44,6 @@ router.delete('/:state', (req: Request, res: Response) => {
     }
 })
 
-// ...existing imports...
-
 // process the auth code, exchange for access token, and fetch profile in one endpoint
 router.post('/auth', async (req: Request, res: Response) => {
     const { code, redirect_uri } = req.body;

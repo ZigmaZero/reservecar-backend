@@ -85,7 +85,7 @@ router.post('/', authenticateToken, authorizeAsAdmin, (req, res) => {
   }
 
   try {
-    const result = createCar(plateNumber, teamId);
+    const result = createCar(plateNumber.trim(), teamId);
     if(result.changes === 0) {
       res.status(400).json({ error: 'Failed to create car. Please check the input.' });
       return;
@@ -113,7 +113,7 @@ router.put('/:carId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRe
   }
 
   try {
-    const result = updateCar(carId, plateNumber, teamId);
+    const result = updateCar(carId, plateNumber.trim(), teamId);
 
     if(result.changes === 0) {
       res.status(404).json({ error: 'Car not found.' });

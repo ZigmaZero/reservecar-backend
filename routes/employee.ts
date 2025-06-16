@@ -112,7 +112,7 @@ router.put('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedR
     return;
   }
   try {
-    const result = updateEmployee(userId, name, lineId, teamId);
+    const result = updateEmployee(userId, name.trim(), lineId, teamId);
     if (result.changes === 0) {
       res.status(404).json({ error: 'Employee not found.' });
       return;

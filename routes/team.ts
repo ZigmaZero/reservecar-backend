@@ -92,7 +92,7 @@ router.post('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest
   }
 
   try {
-    const result = createTeam(name);
+    const result = createTeam(name.trim());
     res.status(201).json({ success: true });
   } catch (error) {
     logger.error("Error creating team:", error);
@@ -116,7 +116,7 @@ router.put('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedR
   }
 
   try {
-    const result = updateTeam(teamId, name);
+    const result = updateTeam(teamId, name.trim());
 
     if (result.changes === 0) {
       res.status(404).json({ error: 'Team not found.' });

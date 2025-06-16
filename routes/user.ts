@@ -30,7 +30,7 @@ router.post('/register', (req: Request, res: Response) => {
 
   // Enter user to database
   try {
-    const result = createEmployee(fullName, lineId);
+    const result = createEmployee(fullName.trim(), lineId);
     if(!result || !result.lastInsertRowid) {
       res.status(500).json({ error: 'Failed to register user.' });
       return;
