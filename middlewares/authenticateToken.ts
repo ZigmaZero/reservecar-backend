@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
-import AuthenticatedRequest from '../interfaces/authenticatedRequest';
-import { JwtPayload } from '../interfaces/internalTypes';
-import logger from '../logger';
+import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
+import { JwtPayload } from '../interfaces/internalTypes.js';
+import logger from '../logger.js';
 
 export default function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
@@ -20,7 +20,7 @@ export default function authenticateToken(req: AuthenticatedRequest, res: Respon
     return;
   }
 
-  jwt.verify(token, secret, (err, user) => {
+  jwt.verify(token, secret, (err: jwt.VerifyErrors | null, user: string | jwt.JwtPayload | undefined) => {
     if (err)
     {
       logger.error("Token verification failed:", err);

@@ -1,6 +1,6 @@
 import express, { Request, Response, Router } from 'express';
-import { getState, storeState } from '../services/lineService';
-import generateRandomState from '../utils/generateRandomState';
+import { getState, storeState } from '../services/lineService.js';
+import generateRandomState from '../utils/generateRandomState.js';
 import axios from 'axios';
 
 const router = express.Router();

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 
-import express from 'express';
+import express, { Application } from 'express';
+
 import { initDbStatement } from './services/db_init.js';
 import { recoverSystem } from './services/systemRecovery.js';
 import cors from 'cors';
@@ -17,10 +18,10 @@ import requestLogger from './middlewares/requestLogger.js';
 import errorLogger from './middlewares/errorLogger.js';
 
 import fs from 'fs';
-import logger from './logger.js';
 
-const app = express();
-const port = 3000;
+
+const app: Application = express();
+
 
 // Load SSL certificate
 const options = {
@@ -88,6 +89,8 @@ frontendRoutes.forEach(route => {
   });
 });
 
-app.listen(port, '0.0.0.0', async () => {
-  logger.info(`Server listening on port ${port}`);
-});
+app.get('/api/health', (req, res) => {
+  res.status(200).json("OK");
+})
+
+export default app;

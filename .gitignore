@@ -18,3 +18,6 @@ server.cert
 
 # frontend built
 frontend/dist
+
+# (not) the database folder
+database
