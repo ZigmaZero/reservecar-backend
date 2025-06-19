@@ -19,11 +19,11 @@ const router = express.Router();
 router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
-  if (page < 1 || pageSize < 1) {
-    res.status(400).json({ error: 'Invalid page or pageSize. Both must be positive integers.' });
+  if (page < 0 || pageSize < 1) {
+    res.status(400).json({ error: 'Invalid page or pageSize.' });
     return;
   }
-  const offset = (page - 1) * pageSize;
+  const offset = page * pageSize;
 
   try {
     const total = getCarsCount();
