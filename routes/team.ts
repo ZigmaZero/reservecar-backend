@@ -19,15 +19,31 @@ const router = express.Router();
 router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const page = req.query.page ? parseInt(req.query.page as string, 10) : 1;
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
+  const sortField = req.query.sortField ? req.query.sortField as string : undefined;
+  const sortOrder = req.query.sortOrder ? req.query.sortOrder as string : undefined;
+
   if (page < 0 || pageSize < 1) {
     res.status(400).json({ error: 'Invalid page or pageSize.' });
     return;
   }
   const offset = page * pageSize;
 
+    if (sortField !== "id" && sortField !== "name" && sortField !== undefined) {
+    res.status(400).json({
+      error: 'Invalid sortField.'
+    });
+    return;
+  }
+
+  if (sortOrder !== "asc" && sortOrder !== "desc" && sortOrder !== undefined)
+  {
+    res.status(400).json({ error: 'Invalid sortOrder.' });
+    return;
+  }
+
   try {
     const total = getTeamsCount();
-    const teams = getTeamsPaginated(pageSize, offset);
+    const teams = getTeamsPaginated(pageSize, offset, sortField, sortOrder);
 
     res.status(200).json({
       data: teams,

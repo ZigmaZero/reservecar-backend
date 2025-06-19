@@ -3,7 +3,22 @@ import db from '../db.js';
 import { Count } from '../interfaces/internalTypes.js';
 import { ReservationExternal } from '../interfaces/externalTypes.js';
 
-export function getReservations(pageSize: number, offset: number): ReservationExternal[] {
+export function getReservations(
+  pageSize: number, 
+  offset: number,
+  sortField: "id" | "user" | "car" | "description" | "checkinTime" | "checkoutTime" | undefined,
+  sortOrder: "asc" | "desc" | undefined
+): ReservationExternal[] {
+  // Map sortField to actual SQL column
+  let orderBy = "Reservation.reservationId";
+  if (sortField === "user") orderBy = "Employee.name";
+  else if (sortField === "car") orderBy = "Car.plateNumber";
+  else if (sortField === "description") orderBy = "Reservation.description";
+  else if (sortField === "checkinTime") orderBy = "Reservation.checkinTime";
+  else if (sortField === "checkoutTime") orderBy = "Reservation.checkoutTime";
+  // Only allow asc/desc, fallback to ASC
+  const order = sortOrder === "desc" ? "DESC" : "ASC";
+
   const stmt = db.prepare<[number, number], ReservationExternal>(`
     SELECT
       Reservation.reservationId AS id,
@@ -17,6 +32,7 @@ export function getReservations(pageSize: number, offset: number): ReservationEx
     FROM Reservation
     LEFT JOIN Employee ON Reservation.userId = Employee.userId
     LEFT JOIN Car ON Reservation.carId = Car.carId
+    ORDER BY ${orderBy} ${order}
     LIMIT ? OFFSET ?
   `);
   return stmt.all(pageSize, offset);

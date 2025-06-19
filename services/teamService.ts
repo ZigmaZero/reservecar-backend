@@ -11,8 +11,24 @@ export function getTeams(): TeamExternal[] {
   }));
 }
 
-export function getTeamsPaginated(pageSize: number, offset: number): TeamExternal[] {
-  const stmt = db.prepare<[number, number], Team>('SELECT * FROM Team WHERE deletedAt IS NULL LIMIT ? OFFSET ?');
+export function getTeamsPaginated(
+  pageSize: number, 
+  offset: number, 
+  sortField: "id" | "name" | undefined, 
+  sortOrder: "asc" | "desc" | undefined
+): TeamExternal[] {
+  // Map sortField to actual SQL column
+  let orderBy = "Team.teamId";
+  if (sortField === "name") orderBy = "Team.name";
+  // Only allow asc/desc, fallback to ASC
+  const order = sortOrder === "desc" ? "DESC" : "ASC";
+
+  const stmt = db.prepare<[number, number], Team>(`
+    SELECT * FROM Team
+    WHERE deletedAt IS NULL
+    ORDER BY ${orderBy} ${order}
+    LIMIT ? OFFSET ?
+  `);
   return stmt.all(pageSize, offset).map(team => ({
     id: team.teamId,
     name: team.name

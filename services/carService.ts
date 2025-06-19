@@ -3,7 +3,19 @@ import { Car, Count } from '../interfaces/internalTypes.js';
 import { CarExternal } from '../interfaces/externalTypes.js';
 import Database from 'better-sqlite3';
 
-export function getCars(pageSize: number, offset: number): CarExternal[] {
+export function getCars(
+  pageSize: number, 
+  offset: number, 
+  sortField: "id" | "plateNumber" | "teamName" | undefined, 
+  sortOrder: "asc" | "desc" | null | undefined
+): CarExternal[] {
+  // Default sort
+  let orderBy = "Car.carId";
+  if (sortField === "plateNumber") orderBy = "Car.plateNumber";
+  if (sortField === "teamName") orderBy = "Team.name";
+  // Only allow asc/desc, fallback to ASC
+  const order = sortOrder === "desc" ? "DESC" : "ASC";
+
   const stmt = db.prepare<[number, number], CarExternal>(`
     SELECT 
       Car.carId AS id,
@@ -13,9 +25,16 @@ export function getCars(pageSize: number, offset: number): CarExternal[] {
     FROM Car
     LEFT JOIN Team ON Car.teamId = Team.teamId
     WHERE Car.deletedAt IS NULL
+    ORDER BY ${orderBy} ${order}
     LIMIT ? OFFSET ?
   `);
   return stmt.all(pageSize, offset);
+}
+
+export function getCarsCount(): number {
+  const stmt = db.prepare<[], Count>('SELECT COUNT(*) as count FROM Car WHERE deletedAt IS NULL');
+  const count = stmt.get();
+  return count ? count.count : 0;
 }
 
 export function getCarsByTeam(teamId: number): CarExternal[] {
@@ -30,12 +49,6 @@ export function getCarsByTeam(teamId: number): CarExternal[] {
     WHERE Car.teamId = ? AND Car.deletedAt IS NULL
   `);
   return stmt.all(teamId);
-}
-
-export function getCarsCount(): number {
-  const stmt = db.prepare<[], Count>('SELECT COUNT(*) as count FROM Car WHERE deletedAt IS NULL');
-  const count = stmt.get();
-  return count ? count.count : 0;
 }
 
 export function getCarById(carId: number): CarExternal | undefined {

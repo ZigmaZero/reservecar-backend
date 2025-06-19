@@ -3,8 +3,20 @@ import db from '../db.js';
 import { Count, Employee } from '../interfaces/internalTypes.js';
 import { EmployeeExternal } from '../interfaces/externalTypes.js';
 
-// Get all employees with teamName
-export function getEmployees(pageSize: number, offset: number): EmployeeExternal[] {
+export function getEmployees(
+  pageSize: number, 
+  offset: number, 
+  sortField: "id" | "teamName" | "verified" | "name" | undefined,
+  sortOrder: "asc" | "desc" | undefined
+): EmployeeExternal[] {
+  // Determine the ORDER BY field
+  let orderBy = "Employee.userId";
+  if (sortField === "teamName") orderBy = "Team.name";
+  else if (sortField === "verified") orderBy = "Employee.verified";
+  else if (sortField === "name") orderBy = "Employee.name";
+  // Only allow asc/desc, fallback to ASC
+  const order = sortOrder === "desc" ? "DESC" : "ASC";
+
   const stmt = db.prepare<[number, number], EmployeeExternal>(`
     SELECT 
       Employee.userId AS id,
@@ -16,6 +28,7 @@ export function getEmployees(pageSize: number, offset: number): EmployeeExternal
     FROM Employee
     LEFT JOIN Team ON Employee.teamId = Team.teamId
     WHERE Employee.deletedAt IS NULL
+    ORDER BY ${orderBy} ${order}
     LIMIT ? OFFSET ?
   `);
   return stmt.all(pageSize, offset);
