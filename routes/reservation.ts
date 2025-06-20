@@ -5,7 +5,8 @@ import {
   getReservations,
   getReservationsCount,
   getReservationById,
-  getReservationsBetweenTime
+  getReservationsBetweenTime,
+  updateReservation
 } from '../services/reservationService.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
@@ -94,6 +95,55 @@ router.get('/:reservationId', authenticateToken, authorizeAsAdmin, (req: Authent
     res.status(200).json(reservation);
   } catch (error) {
     logger.error("Error fetching reservation:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+router.put('/:reservationId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+  const reservationId = parseInt(req.params.reservationId, 10);
+  const { checkinTime, checkoutTime } = req.body;
+
+  if (isNaN(reservationId) || !Number.isInteger(reservationId)) {
+    res.status(400).json({ error: 'Invalid reservationId. It must be an integer.' });
+    return;
+  }
+
+  // Validate checkinTime and checkoutTime
+  const isValidIsoString = (value: any) =>
+    typeof value === "string" &&
+    value.length > 0 &&
+    !isNaN(Date.parse(value)) &&
+    value === new Date(value).toISOString();
+
+  if (
+    checkinTime === undefined ||
+    checkinTime === null ||
+    checkinTime === "" ||
+    !isValidIsoString(checkinTime)
+  ) {
+    res.status(400).json({ error: "Invalid checkinTime. Must be a valid ISO string." });
+    return;
+  }
+
+  if (
+    checkoutTime === undefined ||
+    checkoutTime === null ||
+    checkoutTime === "" ||
+    !isValidIsoString(checkoutTime)
+  ) {
+    res.status(400).json({ error: "Invalid checkoutTime. Must be a valid ISO string." });
+    return;
+  }
+
+  try {
+    const result = updateReservation(reservationId, checkinTime, checkoutTime);
+    if (result.changes === 0) {
+      res.status(404).json({ error: 'Reservation not found.' });
+      return;
+    }
+    res.status(200).json({ message: "Reservation updated successfully." });
+  } catch (error) {
+    logger.error("Error updating reservation:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });

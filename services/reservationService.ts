@@ -112,3 +112,17 @@ export function checkoutReservation(reservationId: number, checkoutTime: string)
   const stmt = db.prepare('UPDATE Reservation SET checkoutTime = ? WHERE reservationId = ?');
   return stmt.run(checkoutTime, reservationId);
 }
+
+export function updateReservation(
+  reservationId: number,
+  checkinTime: string,
+  checkoutTime: string
+): Database.RunResult {
+  const stmt = db.prepare(
+    `UPDATE Reservation
+     SET checkinTime = ?,
+         checkoutTime = ?
+     WHERE reservationId = ?`
+  );
+  return stmt.run(checkinTime, checkoutTime, reservationId);
+}
