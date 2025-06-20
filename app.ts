@@ -90,7 +90,7 @@ frontendRoutes.forEach(route => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json("OK");
+  res.status(200).send("OK");
 })
 
 export default app;
