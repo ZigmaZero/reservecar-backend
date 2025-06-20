@@ -2,7 +2,7 @@ import assert from "assert";
 import request from "supertest";
 import app from "../app.js";
 import db from "../db.js";
-import { initDbStatement } from "../services/db_init.js";
+import { initDbStatement } from "../utils/initiateDatabase.js";
 import { describe, it, before, after } from 'node:test';
 import { hashPassword } from "../utils/passwordHash.js";
 

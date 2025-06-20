@@ -2,7 +2,7 @@ import 'dotenv/config';
 
 import express, { Application } from 'express';
 
-import { initDbStatement } from './services/db_init.js';
+import { initDbStatement } from './utils/initiateDatabase.js';
 import { recoverSystem } from './services/systemRecovery.js';
 import cors from 'cors';
 
