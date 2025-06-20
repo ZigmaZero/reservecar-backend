@@ -49,7 +49,7 @@ describe("/api/cars routes", () => {
     // Clean up test data
     db.prepare(`DELETE FROM Admin WHERE name = ?`).run(TEST_ADMIN_NAME);
     db.prepare(`DELETE FROM Car`).run();
-    db.prepare(`DELETE FROM Team WHERE name = ?`).run(TEST_TEAM_NAME);
+    db.prepare(`DELETE FROM Team`).run();
   });
 
   beforeEach(async () => {

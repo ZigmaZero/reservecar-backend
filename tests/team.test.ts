@@ -27,8 +27,7 @@ describe("/api/teams routes", () => {
     `).run(TEST_ADMIN_NAME, hashPassword(TEST_ADMIN_PASSWORD), now, now);
 
     // Clean up and insert test team
-    db.prepare(`DELETE FROM Team WHERE name = ?`).run(TEST_TEAM_NAME);
-    db.prepare(`DELETE FROM Team WHERE name = ?`).run(TEST_TEAM_NAME_UPDATED);
+    db.prepare(`DELETE FROM Team`).run();
     db.prepare(`DELETE FROM sqlite_sequence WHERE name='Team'`).run();
     db.prepare(`
       INSERT INTO Team (teamId, name, createdAt, updatedAt)
