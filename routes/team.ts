@@ -21,6 +21,9 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
   const sortField = req.query.sortField ? req.query.sortField as string : undefined;
   const sortOrder = req.query.sortOrder ? req.query.sortOrder as string : undefined;
+  const filterField = req.query.filterField ? req.query.filterField as string : undefined;
+  const filterOp = req.query.filterOp ? req.query.filterOp as string : undefined;
+  const filterValue = req.query.filterValue ? req.query.filterValue as string : undefined;
 
   if (page < 0 || pageSize < 1) {
     res.status(400).json({ error: 'Invalid page or pageSize.' });
@@ -41,9 +44,33 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
     return;
   }
 
+  if (filterField !== "id" && filterField !== "name" && filterField !== undefined)
+  {
+    res.status(400).json({ error: 'Invalid filterField.' });
+    return;
+  }
+
+  if (filterOp !== "=" && filterOp != "contains" && filterOp !== undefined)
+  {
+    res.status(400).json({ error: 'Invalid filterOp'} );
+    return;
+  }
+
+  if (filterField === "id" && filterOp !== "=")
+  {
+    res.status(400).json({ error: 'Invalid filterOp' });
+    return;
+  }
+
+  if (filterField === "name" && filterOp !== "contains")
+  {
+    res.status(400).json({ error: 'Invalid filterOp' });
+    return;
+  }
+
   try {
     const total = getTeamsCount();
-    const teams = getTeamsPaginated(pageSize, offset, sortField, sortOrder);
+    const teams = getTeamsPaginated(pageSize, offset, sortField, sortOrder, filterField, filterOp, filterValue);
 
     res.status(200).json({
       data: teams,

@@ -6,20 +6,99 @@ import { ReservationExternal } from '../interfaces/externalTypes.js';
 export function getReservations(
   pageSize: number, 
   offset: number,
-  sortField: "id" | "user" | "car" | "description" | "checkinTime" | "checkoutTime" | undefined,
-  sortOrder: "asc" | "desc" | undefined
+  sortField: "id" | "userId" | "user" | "carId" | "car" | "description" | "checkinTime" | "checkoutTime" | undefined,
+  sortOrder: "asc" | "desc" | undefined,
+  filterField: "id" | "userId" | "user" | "carId" | "car" | "description" | "checkinTime" | "checkoutTime" | undefined,
+  filterOp: "=" | "contains" | "onOrBefore" | "onOrAfter" | "isEmpty" | "isNotEmpty" | undefined,
+  filterValue: string | undefined
 ): ReservationExternal[] {
   // Map sortField to actual SQL column
   let orderBy = "Reservation.reservationId";
-  if (sortField === "user") orderBy = "Employee.name";
+  if (sortField === "userId") orderBy = "Reservation.userId";
+  else if (sortField === "user") orderBy = "Employee.name";
+  else if (sortField === "carId") orderBy = "Reservation.carId";
   else if (sortField === "car") orderBy = "Car.plateNumber";
   else if (sortField === "description") orderBy = "Reservation.description";
   else if (sortField === "checkinTime") orderBy = "Reservation.checkinTime";
   else if (sortField === "checkoutTime") orderBy = "Reservation.checkoutTime";
-  // Only allow asc/desc, fallback to ASC
   const order = sortOrder === "desc" ? "DESC" : "ASC";
 
-  const stmt = db.prepare<[number, number], ReservationExternal>(`
+  // Filtering
+  let filterClause = "1=1";
+  let params: any[] = [];
+
+  if (filterField && filterOp) {
+    // "=" for id, userId, carId
+    if (
+      (filterField === "id" || filterField === "userId" || filterField === "carId") &&
+      filterOp === "=" &&
+      filterValue !== undefined &&
+      filterValue !== ""
+    ) {
+      const column =
+        filterField === "id"
+          ? "Reservation.reservationId"
+          : filterField === "userId"
+          ? "Reservation.userId"
+          : "Reservation.carId";
+      filterClause += ` AND ${column} = ?`;
+      params.push(Number(filterValue));
+    }
+    // "contains" for user, car, description
+    else if (
+      (filterField === "user" || filterField === "car" || filterField === "description") &&
+      filterOp === "contains" &&
+      filterValue !== undefined &&
+      filterValue !== ""
+    ) {
+      const column =
+        filterField === "user"
+          ? "Employee.name"
+          : filterField === "car"
+          ? "Car.plateNumber"
+          : "Reservation.description";
+      filterClause += ` AND ${column} LIKE ?`;
+      params.push(`%${filterValue}%`);
+    }
+    // checkinTime: onOrBefore/onOrAfter
+    else if (
+      filterField === "checkinTime" &&
+      (filterOp === "onOrBefore" || filterOp === "onOrAfter") &&
+      filterValue !== undefined &&
+      filterValue !== ""
+    ) {
+      const column = "Reservation.checkinTime";
+      if (filterOp === "onOrBefore") {
+        filterClause += ` AND ${column} <= ?`;
+      } else {
+        filterClause += ` AND ${column} >= ?`;
+      }
+      params.push(new Date(filterValue).toISOString());
+    }
+    // checkoutTime: onOrBefore/onOrAfter/isEmpty/isNotEmpty
+    else if (filterField === "checkoutTime") {
+      const column = "Reservation.checkoutTime";
+      if (
+        (filterOp === "onOrBefore" || filterOp === "onOrAfter") &&
+        filterValue !== undefined &&
+        filterValue !== ""
+      ) {
+        if (filterOp === "onOrBefore") {
+          filterClause += ` AND ${column} <= ?`;
+        } else {
+          filterClause += ` AND ${column} >= ?`;
+        }
+        params.push(new Date(filterValue).toISOString());
+      } else if (filterOp === "isEmpty") {
+        filterClause += ` AND ${column} IS NULL`;
+      } else if (filterOp === "isNotEmpty") {
+        filterClause += ` AND ${column} IS NOT NULL`;
+      }
+    }
+    // If filterValue is undefined or empty, ignore the filter (do not add to clause)
+  }
+
+  const stmt = db.prepare<[...any[], number, number], ReservationExternal>(`
     SELECT
       Reservation.reservationId AS id,
       Reservation.userId AS userId,
@@ -32,10 +111,11 @@ export function getReservations(
     FROM Reservation
     LEFT JOIN Employee ON Reservation.userId = Employee.userId
     LEFT JOIN Car ON Reservation.carId = Car.carId
+    WHERE ${filterClause}
     ORDER BY ${orderBy} ${order}
     LIMIT ? OFFSET ?
   `);
-  return stmt.all(pageSize, offset);
+  return stmt.all(...params, pageSize, offset);
 }
 
 export function getReservationsBetweenTime(startTime: Date, endTime: Date): ReservationExternal[] {

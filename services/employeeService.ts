@@ -6,18 +6,49 @@ import { EmployeeExternal } from '../interfaces/externalTypes.js';
 export function getEmployees(
   pageSize: number, 
   offset: number, 
-  sortField: "id" | "teamName" | "verified" | "name" | undefined,
-  sortOrder: "asc" | "desc" | undefined
+  sortField: "id" | "teamId" | "teamName" | "verified" | "name" | undefined,
+  sortOrder: "asc" | "desc" | undefined,
+  filterField: "id" | "teamId" | "teamName" | "verified" | "name" | undefined,
+  filterOp: "=" | "is" | "contains" | undefined,
+  filterValue: string | undefined
 ): EmployeeExternal[] {
   // Determine the ORDER BY field
   let orderBy = "Employee.userId";
   if (sortField === "teamName") orderBy = "Team.name";
+  else if (sortField === "teamId") orderBy = "Employee.teamId";
   else if (sortField === "verified") orderBy = "Employee.verified";
   else if (sortField === "name") orderBy = "Employee.name";
-  // Only allow asc/desc, fallback to ASC
   const order = sortOrder === "desc" ? "DESC" : "ASC";
 
-  const stmt = db.prepare<[number, number], EmployeeExternal>(`
+  // Filtering
+  let filterClause = "Employee.deletedAt IS NULL";
+  let params: any[] = [];
+
+  if (filterField) {
+    if ((filterField === "id" || filterField === "teamId") && filterOp === "=" && filterValue !== undefined && filterValue !== "") {
+      if (filterField === "id") {
+        filterClause += " AND Employee.userId = ?";
+      } else {
+        filterClause += " AND Employee.teamId = ?";
+      }
+      params.push(Number(filterValue));
+    } else if ((filterField === "name" || filterField === "teamName") && filterOp === "contains" && filterValue !== undefined && filterValue !== "") {
+      if (filterField === "name") {
+        filterClause += " AND Employee.name LIKE ?";
+      } else {
+        filterClause += " AND Team.name LIKE ?";
+      }
+      params.push(`%${filterValue}%`);
+    } else if (filterField === "verified" && filterOp === "is") {
+      if (filterValue === "true") {
+        filterClause += " AND Employee.verified = 1";
+      } else if (filterValue === "false") {
+        filterClause += " AND Employee.verified = 0";
+      } // if "any" or undefined, do not add a filter
+    }
+  }
+
+  const stmt = db.prepare<[...any[], number, number], EmployeeExternal>(`
     SELECT 
       Employee.userId AS id,
       Employee.lineId,
@@ -27,11 +58,11 @@ export function getEmployees(
       Team.name AS teamName
     FROM Employee
     LEFT JOIN Team ON Employee.teamId = Team.teamId
-    WHERE Employee.deletedAt IS NULL
+    WHERE ${filterClause}
     ORDER BY ${orderBy} ${order}
     LIMIT ? OFFSET ?
   `);
-  return stmt.all(pageSize, offset);
+  return stmt.all(...params, pageSize, offset);
 }
 
 export function getEmployeesCount(): number {

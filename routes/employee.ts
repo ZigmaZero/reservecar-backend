@@ -20,6 +20,9 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
   const sortField = req.query.sortField ? req.query.sortField as string : undefined;
   const sortOrder = req.query.sortOrder ? req.query.sortOrder as string : undefined;
+  const filterField = req.query.filterField ? req.query.filterField as string : undefined;
+  const filterOp = req.query.filterOp ? req.query.filterOp as string : undefined;
+  const filterValue = req.query.filterValue ? req.query.filterValue as string : undefined;
 
   if (page < 0 || pageSize < 1) {
     res.status(400).json({ 
@@ -29,7 +32,7 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
   }
   const offset = page * pageSize;
 
-  if (sortField !== "id" && sortField !== "verified" && sortField !== "name" && sortField !== "teamName" && sortField !== undefined)
+  if (sortField !== "id" && sortField !== "teamId" && sortField !== "verified" && sortField !== "name" && sortField !== "teamName" && sortField !== undefined)
   {
     res.status(400).json({
       error: 'Invalid sortField.'
@@ -43,9 +46,53 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
     return;
   }
 
+  if (filterField !== "id" && filterField !== "name" && filterField !== "verified" && filterField !== "teamId" && filterField !== "teamName" && filterField !== undefined)
+  {
+    res.status(400).json({ error: 'Invalid filterField.' });
+    return;
+  }
+
+  if (filterOp !== "=" && filterOp !== "contains" && filterOp !== "is" && filterOp !== undefined)
+  {
+    res.status(400).json({ error: 'Invalid filterOp.' });
+    return;
+  }
+
+  if (filterField === "id" || filterField === "teamId")
+  {
+    if (filterOp !== "=")
+    {
+      res.status(400).json({ error: 'Invalid filterOp.' });
+    }
+  }
+
+  if (filterField === "name" || filterField === "teamName")
+  {
+    if (filterOp !== "contains")
+    {
+      res.status(400).json({ error: 'Invalid filterOp.' });
+    }
+  }
+
+  if (filterField === "verified")
+  {
+    if (filterOp !== "is")
+    {
+      res.status(400).json({ error: 'Invalid filterOp.' });
+    }
+  }
+
+  if (filterOp === "is")
+  {
+    if (filterValue !== "any" && filterValue !== "true" && filterValue !== "false" && filterValue !== undefined)
+    {
+      res.status(400).json({ error: 'Invalid filterValue.' });
+    }
+  }
+
   try {
     const total = getEmployeesCount();
-    const employees = getEmployees(pageSize, offset, sortField, sortOrder);
+    const employees = getEmployees(pageSize, offset, sortField, sortOrder, filterField, filterOp, filterValue);
 
     res.status(200).json({
       data: employees,

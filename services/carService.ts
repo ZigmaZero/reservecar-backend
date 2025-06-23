@@ -6,17 +6,40 @@ import Database from 'better-sqlite3';
 export function getCars(
   pageSize: number, 
   offset: number, 
-  sortField: "id" | "plateNumber" | "teamName" | undefined, 
-  sortOrder: "asc" | "desc" | null | undefined
+  sortField: "id" | "plateNumber" | "teamId" | "teamName" | undefined, 
+  sortOrder: "asc" | "desc" | null | undefined,
+  filterField: "id" | "plateNumber" | "teamId" | "teamName" | undefined,
+  filterOp: "=" | "contains" | undefined,
+  filterValue: string | undefined
 ): CarExternal[] {
   // Default sort
   let orderBy = "Car.carId";
   if (sortField === "plateNumber") orderBy = "Car.plateNumber";
-  if (sortField === "teamName") orderBy = "Team.name";
-  // Only allow asc/desc, fallback to ASC
+  else if (sortField === "teamId") orderBy = "Car.teamId";
+  else if (sortField === "teamName") orderBy = "Team.name";
   const order = sortOrder === "desc" ? "DESC" : "ASC";
 
-  const stmt = db.prepare<[number, number], CarExternal>(`
+  // Filtering
+  let filterClause = "Car.deletedAt IS NULL";
+  let params: any[] = [];
+
+  if (filterField && filterValue !== undefined && filterValue !== "") {
+    if (filterField === "id" && filterOp === "=") {
+      filterClause += " AND Car.carId = ?";
+      params.push(Number(filterValue));
+    } else if (filterField === "teamId" && filterOp === "=") {
+      filterClause += " AND Car.teamId = ?";
+      params.push(Number(filterValue));
+    } else if (filterField === "plateNumber" && filterOp === "contains") {
+      filterClause += " AND Car.plateNumber LIKE ?";
+      params.push(`%${filterValue}%`);
+    } else if (filterField === "teamName" && filterOp === "contains") {
+      filterClause += " AND Team.name LIKE ?";
+      params.push(`%${filterValue}%`);
+    }
+  }
+
+  const stmt = db.prepare<[...any[], number, number], CarExternal>(`
     SELECT 
       Car.carId AS id,
       Car.plateNumber,
@@ -24,11 +47,12 @@ export function getCars(
       Team.name AS teamName
     FROM Car
     LEFT JOIN Team ON Car.teamId = Team.teamId
-    WHERE Car.deletedAt IS NULL
+    WHERE ${filterClause}
     ORDER BY ${orderBy} ${order}
     LIMIT ? OFFSET ?
   `);
-  return stmt.all(pageSize, offset);
+
+  return stmt.all(...params, pageSize, offset);
 }
 
 export function getCarsCount(): number {

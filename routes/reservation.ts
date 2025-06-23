@@ -19,6 +19,9 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
   const pageSize = req.query.pageSize ? parseInt(req.query.pageSize as string, 10) : 10;
   const sortField = req.query.sortField ? req.query.sortField as string : undefined;
   const sortOrder = req.query.sortOrder ? req.query.sortOrder as string : undefined;
+  const filterField = req.query.filterField ? req.query.filterField as string : undefined;
+  const filterOp = req.query.filterOp ? req.query.filterOp as string : undefined;
+  const filterValue = req.query.filterValue ? req.query.filterValue as string : undefined;
 
   if (page < 0 || pageSize < 1) {
     res.status(400).json({ error: 'Invalid page or pageSize.' });
@@ -27,10 +30,12 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
   const offset = page * pageSize;
 
   if (
-    sortField !== "id" && 
-    sortField !== "user" && 
-    sortField !== "car" && 
-    sortField !== "description" && 
+    sortField !== "id" &&
+    sortField !== "userId" &&
+    sortField !== "user" &&
+    sortField !== "carId" &&
+    sortField !== "car" &&
+    sortField !== "description" &&
     sortField !== "checkinTime" &&
     sortField !== "checkoutTime" &&
     sortField !== undefined
@@ -41,15 +46,80 @@ router.get('/', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest,
     return;
   }
 
-  if (sortOrder !== "asc" && sortOrder !== "desc" && sortOrder !== undefined)
-  {
+  if (sortOrder !== "asc" && sortOrder !== "desc" && sortOrder !== undefined) {
     res.status(400).json({ error: 'Invalid sortOrder.' });
     return;
   }
 
+  if (
+    filterField !== "id" &&
+    filterField !== "userId" &&
+    filterField !== "user" &&
+    filterField !== "carId" &&
+    filterField !== "car" &&
+    filterField !== "description" &&
+    filterField !== "checkinTime" &&
+    filterField !== "checkoutTime" &&
+    filterField !== undefined
+  ) {
+    res.status(400).json({
+      error: 'Invalid filterField.'
+    });
+    return;
+  }
+
+  if (
+    filterOp !== "=" &&
+    filterOp !== "contains" &&
+    filterOp !== "onOrBefore" &&
+    filterOp !== "onOrAfter" &&
+    filterOp !== "isEmpty" &&
+    filterOp !== "isNotEmpty" &&
+    filterOp !== undefined
+  ) {
+    res.status(400).json({
+      error: 'Invalid filterOp.'
+    });
+    return;
+  }
+
+  if (filterField === "id" || filterField === "userId" || filterField === "carId") {
+    if (filterOp !== "=") {
+      res.status(400).json({
+        error: 'Invalid filterOp.'
+      });
+      return;
+    }
+  }
+
+  if (filterField === "car" || filterField === "user" || filterField === "description") {
+    if (filterOp !== "contains") {
+      res.status(400).json({
+        error: 'Invalid filterOp.'
+      });
+      return;
+    }
+  }
+
+  if (filterField === "checkinTime" && filterOp !== "onOrAfter" && filterOp !== "onOrBefore")
+  {
+    res.status(400).json({
+      error: 'Invalid filterOp.'
+    });
+    return;
+  }
+
+  if (filterField === 'checkoutTime' && filterOp !== "onOrAfter" && filterOp !== "onOrBefore"
+    && filterOp !== "isEmpty" && filterOp !== "isNotEmpty"
+  ) {
+    res.status(400).json({
+      error: 'Invalid filterOp.'
+    })
+  }
+
   try {
     const total = getReservationsCount();
-    const reservations = getReservations(pageSize, offset, sortField, sortOrder);
+    const reservations = getReservations(pageSize, offset, sortField, sortOrder, filterField, filterOp, filterValue);
 
     res.status(200).json({
       data: reservations,

@@ -15,21 +15,37 @@ export function getTeamsPaginated(
   pageSize: number, 
   offset: number, 
   sortField: "id" | "name" | undefined, 
-  sortOrder: "asc" | "desc" | undefined
+  sortOrder: "asc" | "desc" | undefined,
+  filterField: "id" | "name" | undefined,
+  filterOp: "=" | "contains" | undefined,
+  filterValue: string | undefined
 ): TeamExternal[] {
   // Map sortField to actual SQL column
   let orderBy = "Team.teamId";
   if (sortField === "name") orderBy = "Team.name";
-  // Only allow asc/desc, fallback to ASC
   const order = sortOrder === "desc" ? "DESC" : "ASC";
 
-  const stmt = db.prepare<[number, number], Team>(`
+  // Filtering
+  let filterClause = "deletedAt IS NULL";
+  let params: any[] = [];
+
+  if (filterField && filterValue !== undefined && filterValue !== "") {
+    if (filterField === "id" && filterOp === "=") {
+      filterClause += " AND teamId = ?";
+      params.push(Number(filterValue));
+    } else if (filterField === "name" && filterOp === "contains") {
+      filterClause += " AND name LIKE ?";
+      params.push(`%${filterValue}%`);
+    }
+  }
+
+  const stmt = db.prepare<[...any[], number, number], Team>(`
     SELECT * FROM Team
-    WHERE deletedAt IS NULL
+    WHERE ${filterClause}
     ORDER BY ${orderBy} ${order}
     LIMIT ? OFFSET ?
   `);
-  return stmt.all(pageSize, offset).map(team => ({
+  return stmt.all(...params, pageSize, offset).map(team => ({
     id: team.teamId,
     name: team.name
   }));
