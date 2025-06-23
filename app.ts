@@ -19,9 +19,7 @@ import errorLogger from './middlewares/errorLogger.js';
 
 import fs from 'fs';
 
-
 const app: Application = express();
-
 
 // Load SSL certificate
 const options = {

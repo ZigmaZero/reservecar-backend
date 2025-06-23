@@ -115,11 +115,11 @@ export function verifyEmployee(userId: number): Database.RunResult {
   return stmt.run(userId);
 }
 
-export function updateEmployee(userId: number, name: string, lineId?: string, teamId?: number): Database.RunResult {
-  const stmt = db.prepare<[string, string | undefined, number | undefined, string, number], Employee>(
-    'UPDATE Employee SET name = ?, lineId = ?, teamId = ?, updatedAt = ? WHERE userId = ? AND deletedAt IS NULL'
+export function updateEmployee(userId: number, name: string, teamId?: number): Database.RunResult {
+  const stmt = db.prepare<[string, number | undefined, string, number], Employee>(
+    'UPDATE Employee SET name = ?, teamId = ?, updatedAt = ? WHERE userId = ? AND deletedAt IS NULL'
   );
-  return stmt.run(name, lineId, teamId, new Date().toISOString(), userId);
+  return stmt.run(name, teamId, new Date().toISOString(), userId);
 }
 
 export function removeEmployee(userId: number): Database.RunResult {

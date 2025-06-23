@@ -11,6 +11,7 @@ import {
 } from '../services/employeeService.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
+import { message } from '../services/lineService.js';
 
 const router = express.Router();
 
@@ -158,7 +159,13 @@ router.put('/:userId/verify', authenticateToken, authorizeAsAdmin, (req: Authent
 // General update employee (PUT)
 router.put('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const userId = parseInt(req.params.userId, 10);
-  const { name, lineId, teamId } = req.body;
+  const oldUser = getEmployeeById(userId);
+  if (!oldUser)
+  {
+    res.status(404).json({ error: 'Employee not found.' });
+    return;
+  }
+  const { name, teamId } = req.body;
   if (isNaN(userId) || !Number.isInteger(userId)) {
     res.status(400).json({ error: 'Invalid userId. It must be an integer.' });
     return;
@@ -167,25 +174,56 @@ router.put('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedR
     res.status(400).json({ error: 'Invalid name. It must be a non-empty string.' });
     return;
   }
-  if (lineId && typeof lineId !== 'string') {
-    res.status(400).json({ error: 'Invalid lineId. It must be a string.' });
-    return;
-  }
   if (teamId && (isNaN(teamId) || !Number.isInteger(teamId))) {
     res.status(400).json({ error: 'Invalid teamId. It must be an integer.' });
     return;
   }
   try {
-    const result = updateEmployee(userId, name.trim(), lineId, teamId);
-    if (result.changes === 0) {
-      res.status(404).json({ error: 'Employee not found.' });
-      return;
-    }
-    res.status(200).json({ message: 'Employee updated successfully.' });
+    const result = updateEmployee(userId, name.trim(), teamId);
   } catch (error) {
     logger.error("Error updating employee:", error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+
+  const newUser = getEmployeeById(userId);
+  if (!newUser)
+  {
+    res.status(404).json({ error: 'Employee not found.' });
+    return;
+  }
+
+  return message(
+    oldUser.lineId, 
+    `[Employee information changed]
+    Hello ${oldUser.name}:
+    An administrator has changed your employee information in the ReserveCar system.
+    The changes are as follows:
+    ${oldUser.name !== newUser?.name ? 
+      `Old name: ${oldUser.name}
+      New name: ${newUser?.name}` : ""}${oldUser.teamId !== newUser?.teamId ? 
+      `Old team: ${oldUser.teamName || "None"}
+      New team: ${newUser?.teamName || "None"}` : ""}
+    The changes will be applied effective immediately.
+    Thank you for using Jastel ReserveCar system.`
+  ).then((result) => {
+    if(result.success)
+    {
+      res.status(200).json({
+        message: 'Employee updated successfully.', 
+        line: result.message
+      });
+      return;
+    }
+    else
+    {
+      res.status(200).json({
+        message: 'Employee updated successfully.',
+        line: `Failed with status ${result.status} and error ${result.error}`
+      });
+      return;
+    }
+  })
+
 });
 
 // Delete an employee (DELETE)

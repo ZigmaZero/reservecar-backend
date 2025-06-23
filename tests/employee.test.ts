@@ -97,13 +97,13 @@ describe("/api/employees routes", () => {
     assert.strictEqual(getRes.body.verified, 1);
   });
 
-  it("PUT /api/employees/:userId should update the employee", async () => {
+it("PUT /api/employees/:userId should update the employee", async () => {
     const newName = "Updated Employee";
-    const newLineId = "updatedlineid";
+    // lineId is no longer updatable, so keep it unchanged in the assertion
     const res = await request(app)
       .put(`/api/employees/${TEST_EMPLOYEE_ID}`)
       .set("Authorization", `Bearer ${adminToken}`)
-      .send({ name: newName, lineId: newLineId, teamId: TEST_TEAM_ID });
+      .send({ name: newName, teamId: TEST_TEAM_ID });
     assert.strictEqual(res.status, 200);
     assert.strictEqual(res.body.message, "Employee updated successfully.");
 
@@ -112,7 +112,7 @@ describe("/api/employees routes", () => {
       .get(`/api/employees/${TEST_EMPLOYEE_ID}`)
       .set("Authorization", `Bearer ${adminToken}`);
     assert.strictEqual(getRes.body.name, newName);
-    assert.strictEqual(getRes.body.lineId, newLineId);
+    assert.strictEqual(getRes.body.teamId, TEST_TEAM_ID);
   });
 
   it("DELETE /api/employees/:userId should delete the employee", async () => {
@@ -136,5 +136,5 @@ describe("/api/employees routes", () => {
       .set("Authorization", `Bearer ${adminToken}`);
     assert.strictEqual(delRes.status, 200);
     assert.strictEqual(delRes.body.message, "Employee deleted successfully.");
-    });
+  });
 });
