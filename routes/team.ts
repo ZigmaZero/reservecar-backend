@@ -12,8 +12,10 @@ import {
 } from '../services/teamService.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
-import { getEmployeesInTeam } from '../services/employeeService.js';
+import { getEmployees, getEmployeesInTeam } from '../services/employeeService.js';
 import { getCarsByTeam } from '../services/carService.js';
+import { messageMany } from '../services/lineService.js';
+import teamUpdateMessage from '../messages/teamUpdateMessage.js';
 
 const router = express.Router();
 
@@ -160,14 +162,37 @@ router.put('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedR
   }
 
   try {
+    const oldTeam = getTeamById(teamId);
     const result = updateTeam(teamId, name.trim());
-
-    if (result.changes === 0) {
+    const newTeam = getTeamById(teamId);
+    const employees = getEmployeesInTeam(teamId);
+    if (!oldTeam || !newTeam || result.changes === 0) {
       res.status(404).json({ error: 'Team not found.' });
       return;
     }
 
-    res.status(200).json({ message: 'Team updated successfully.' });
+    messageMany(
+      employees.map((employee) => (employee.lineId)), 
+      teamUpdateMessage(oldTeam, newTeam)
+    ).then((result) => {
+      if(result.success)
+      {
+        res.status(200).json({
+          message: 'Team updated successfully.', 
+          line: result.message
+        });
+        return;
+      }
+      else
+      {
+        res.status(200).json({
+          message: 'Team updated successfully.',
+          line: `Failed with status ${result.status} and error ${result.error}`
+        });
+        return;
+      }
+    })
+
   } catch (error) {
     logger.error("Error updating team:", error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -177,6 +202,19 @@ router.put('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedR
 // Delete a team
 router.delete('/:teamId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const teamId = parseInt(req.params.teamId, 10);
+
+  const cars = getCarsByTeam(teamId);
+  if(cars.length !== 0)
+  {
+    res.status(400).json({ error: 'Cannot remove team while cars are assigned to it. '});
+    return;
+  }
+
+  const employees = getEmployeesInTeam(teamId);
+  if(employees.length !== 0)
+  {
+    res.status(400).json({ error: 'Cannot remove team while employees are assigned to it. '});
+  }
 
   if (isNaN(teamId) || !Number.isInteger(teamId)) {
     res.status(400).json({ error: 'Invalid teamId. It must be an integer.' });

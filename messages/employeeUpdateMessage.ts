@@ -9,7 +9,5 @@ ${oldUser.name !== newUser?.name ?
       `- Old name: ${oldUser.name}
 + New name: ${newUser?.name}` : ""}${oldUser.teamId !== newUser?.teamId ?
       `- Old team: ${oldUser.teamName || "None"}
-+ New team: ${newUser?.teamName || "None"}` : ""}
-The changes will be applied effective immediately.
-Thank you for using Jastel ReserveCar system.`;
++ New team: ${newUser?.teamName || "None"}` : ""}`
 }
