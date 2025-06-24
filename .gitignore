@@ -21,3 +21,4 @@ frontend/dist
 
 # (not) the database folder
 database
+test_db
