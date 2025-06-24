@@ -65,3 +65,90 @@ export const message = async(lineId: string, message: string): Promise<{
         };
     }
 }
+
+export const messageMany = async (
+    lineIds: string[],
+    message: string
+): Promise<{
+    success: boolean,
+    message?: string,
+    status?: number,
+    error?: string
+}> => {
+    if (process.env.NODE_ENV === 'test') {
+        return { success: false, error: "Sending messages are disabled during testing." };
+    }
+
+    if (!Array.isArray(lineIds) || lineIds.length === 0) {
+        return { success: false, error: "No lineIds provided." };
+    }
+    if (typeof message !== "string" || message.trim() === "") {
+        return { success: false, error: "Message must be a non-empty string." };
+    }
+
+    const access_token = process.env.LINE_MESSAGING_API_ACCESS_TOKEN;
+    if (!access_token) {
+        return { success: false, error: "Missing LINE_MESSAGING_API_ACCESS_TOKEN" };
+    }
+
+    // Helper to sleep for ms milliseconds
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // Batch lineIds into groups of 100
+    const batches: string[][] = [];
+    for (let i = 0; i < lineIds.length; i += 100) {
+        batches.push(lineIds.slice(i, i + 100));
+    }
+
+    let lastStatus: number | undefined = undefined;
+    let errors: string[] = [];
+    for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i];
+        try {
+            const res = await axios.post(
+                "https://api.line.me/v2/bot/message/multicast",
+                {
+                    to: batch,
+                    messages: [
+                        {
+                            type: "text",
+                            text: message
+                        }
+                    ]
+                },
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${access_token}`
+                    }
+                }
+            );
+            lastStatus = res.status;
+        } catch (error: any) {
+            errors.push(
+                error?.response?.data?.message ||
+                error?.message ||
+                "Unknown error"
+            );
+            lastStatus = error?.response?.status;
+        }
+        // Wait 1000ms between batches, except after the last one
+        if (i < batches.length - 1) {
+            await sleep(1000);
+        }
+    }
+
+    if (errors.length === 0) {
+        return {
+            success: true,
+            message: "All messages sent successfully",
+            status: lastStatus
+        };
+    } else {
+        return {
+            success: false,
+            error: errors.join("; "),
+            status: lastStatus
+        };
+    }
+};

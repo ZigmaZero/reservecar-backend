@@ -71,6 +71,22 @@ export function getEmployeesCount(): number {
   return count ? count.count : 0;
 }
 
+export function getEmployeesInTeam(teamId: number): EmployeeExternal[] {
+  const stmt = db.prepare<[number], EmployeeExternal>(`
+    SELECT 
+      Employee.userId AS id,
+      Employee.lineId,
+      Employee.name,
+      Employee.verified,
+      Employee.teamId,
+      Team.name AS teamName
+    FROM Employee
+    LEFT JOIN Team ON Employee.teamId = Team.teamId
+    WHERE Employee.teamId = ? AND Employee.deletedAt IS NULL
+  `);
+  return stmt.all(Number(teamId));
+}
+
 // Get employee by id with teamName
 export function getEmployeeById(userId: number): EmployeeExternal | undefined {
   const stmt = db.prepare<[number], EmployeeExternal>(`

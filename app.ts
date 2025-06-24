@@ -77,7 +77,6 @@ const frontendRoutes = [
   '/checkout/success',
   '/menu',
   '/line/access',
-  '/line/begin',
   '/line/callback'
 ];
 

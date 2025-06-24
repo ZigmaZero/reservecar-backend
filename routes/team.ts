@@ -12,7 +12,8 @@ import {
 } from '../services/teamService.js';
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
-import authorizeAsEmployee from '../middlewares/authorizeAsEmployee.js';
+import { getEmployeesInTeam } from '../services/employeeService.js';
+import { getCarsByTeam } from '../services/carService.js';
 
 const router = express.Router();
 
