@@ -15,6 +15,7 @@ import { message } from '../services/lineService.js';
 import { EmployeeExternal } from '../interfaces/externalTypes.js';
 import employeeUpdateMessage from '../messages/employeeUpdateMessage.js';
 import employeeVerifyMessage from '../messages/employeeVerifyMessage.js';
+import employeeDeleteMessage from '../messages/employeeDeleteMessage.js';
 
 const router = express.Router();
 
@@ -253,12 +254,32 @@ router.delete('/:userId', authenticateToken, authorizeAsAdmin, (req: Authenticat
     return;
   }
   try {
+    const user = getEmployeeById(userId);
     const result = removeEmployee(userId);
 
-    if (result.changes === 0) {
+    if (result.changes === 0 || !user) {
       res.status(404).json({ error: 'Employee not found.' });
       return;
     }
+
+    return message(user.lineId, employeeDeleteMessage(user)).then((result) => {
+      if(result.success)
+      {
+        res.status(200).json({
+          message: 'Employee deleted successfully.', 
+          line: result.message
+        });
+        return;
+      }
+      else
+      {
+        res.status(200).json({
+          message: 'Employee deleted successfully.',
+          line: `Failed with status ${result.status} and error ${result.error}`
+        });
+        return;
+      }
+    })
 
     res.status(200).json({ message: 'Employee deleted successfully.' });
   } catch (error) {
