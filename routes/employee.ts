@@ -12,6 +12,9 @@ import {
 import authorizeAsAdmin from '../middlewares/authorizeAsAdmin.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
 import { message } from '../services/lineService.js';
+import { EmployeeExternal } from '../interfaces/externalTypes.js';
+import employeeUpdateMessage from '../messages/employeeUpdateMessage.js';
+import employeeVerifyMessage from '../messages/employeeVerifyMessage.js';
 
 const router = express.Router();
 
@@ -135,13 +138,14 @@ router.get('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedR
 // Verify employee (PUT)
 router.put('/:userId/verify', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
   const userId = parseInt(req.params.userId, 10);
-
+  
   if (isNaN(userId) || !Number.isInteger(userId)) {
     res.status(400).json({ error: 'Invalid userId. It must be an integer.' });
     return;
   }
 
   try {
+    const user = getEmployeeById(userId);
     const result = verifyEmployee(userId);
 
     if (result.changes === 0) {
@@ -149,7 +153,29 @@ router.put('/:userId/verify', authenticateToken, authorizeAsAdmin, (req: Authent
       return;
     }
 
-    res.status(200).json({ message: 'Employee verified successfully.' });
+    if (!user) {
+      res.status(404).json({ error: 'Employee not found or already verified.' });
+      return;
+    }
+
+    return message(user.lineId, employeeVerifyMessage(user)).then((result) => {
+      if(result.success)
+      {
+        res.status(200).json({
+          message: 'Employee verified successfully.', 
+          line: result.message
+        });
+        return;
+      }
+      else
+      {
+        res.status(200).json({
+          message: 'Employee verified successfully.',
+          line: `Failed with status ${result.status} and error ${result.error}`
+        });
+        return;
+      }
+    });
   } catch (error) {
     logger.error("Error verifying employee:", error);
     res.status(500).json({ error: 'Internal Server Error' });
@@ -158,13 +184,9 @@ router.put('/:userId/verify', authenticateToken, authorizeAsAdmin, (req: Authent
 
 // General update employee (PUT)
 router.put('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedRequest, res: Response) => {
+  // TODO: FIX THIS
   const userId = parseInt(req.params.userId, 10);
-  const oldUser = getEmployeeById(userId);
-  if (!oldUser)
-  {
-    res.status(404).json({ error: 'Employee not found.' });
-    return;
-  }
+  let oldUser;
   const { name, teamId } = req.body;
   if (isNaN(userId) || !Number.isInteger(userId)) {
     res.status(400).json({ error: 'Invalid userId. It must be an integer.' });
@@ -179,10 +201,17 @@ router.put('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedR
     return;
   }
   try {
+    oldUser = getEmployeeById(userId);
     const result = updateEmployee(userId, name.trim(), teamId);
   } catch (error) {
     logger.error("Error updating employee:", error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+
+  if (!oldUser)
+  {
+    res.status(404).json({ error: 'Employee not found.' });
+    return;
   }
 
   const newUser = getEmployeeById(userId);
@@ -194,17 +223,7 @@ router.put('/:userId', authenticateToken, authorizeAsAdmin, (req: AuthenticatedR
 
   return message(
     oldUser.lineId, 
-    `[Employee information changed]
-    Hello ${oldUser.name}:
-    An administrator has changed your employee information in the ReserveCar system.
-    The changes are as follows:
-    ${oldUser.name !== newUser?.name ? 
-      `Old name: ${oldUser.name}
-      New name: ${newUser?.name}` : ""}${oldUser.teamId !== newUser?.teamId ? 
-      `Old team: ${oldUser.teamName || "None"}
-      New team: ${newUser?.teamName || "None"}` : ""}
-    The changes will be applied effective immediately.
-    Thank you for using Jastel ReserveCar system.`
+    employeeUpdateMessage(oldUser, newUser)
   ).then((result) => {
     if(result.success)
     {
