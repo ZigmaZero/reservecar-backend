@@ -22,10 +22,10 @@ import fs from 'fs';
 const app: Application = express();
 
 // Load SSL certificate
-const options = {
-    key: fs.readFileSync('server.key'),
-    cert: fs.readFileSync('server.cert'),
-};
+// const options = {
+//     key: fs.readFileSync('server.key'),
+//     cert: fs.readFileSync('server.cert'),
+// };
 
 // Create database tables if they do not exist
 initDbStatement();
@@ -41,16 +41,6 @@ app.use(requestLogger);
 
 // Middleware to log errors
 app.use(errorLogger);
-
-// Configure CORS
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
 
 app.use('/api/user', userRoutes);
 app.use('/api/admin', adminRoutes);
