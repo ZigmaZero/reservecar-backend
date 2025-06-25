@@ -23,7 +23,7 @@ export function adminLoginController() {
         return;
       }
 
-      // Generate JWT token and set it as a cookie
+      // Generate JWT token and send it back
       const token = generateAccessToken(admin);
       res.status(200).json(
         {
@@ -71,7 +71,17 @@ export function adminUpdateController()
         return;
       }
 
-      res.status(200).json({ success: true });
+      const newAdmin = getAdminById(adminId);
+
+      if (!newAdmin)
+      {
+        res.status(404).json({ error: 'Admin not found.' });
+        return;
+      }
+
+      const token = generateAccessToken(newAdmin);
+
+      res.status(200).json({ admin: newAdmin, token: token });
 
     } catch (error) {
       logger.error("Error during admin update:", error);
