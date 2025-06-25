@@ -3,7 +3,7 @@ import logger from './logger.js';
 
 const db = new Database(
   (process.env.NODE_ENV === 'test') 
-  ? 'test_db/database.db' 
+  ? 'database/test.db' 
   : 'database/database.db',
   { verbose: (msg) => logger.info(msg) }
 );
