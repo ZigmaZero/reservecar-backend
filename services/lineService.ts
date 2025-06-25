@@ -152,3 +152,16 @@ export const messageMany = async (
         };
     }
 };
+
+export const messageGroup = async (str: string): Promise<{
+    success: boolean,
+    message?: string,
+    status?: number,
+    error?: string
+}> => {
+    if (!process.env.LINE_LOGGING_GROUP_ID)
+    {
+        return { success: false, error: "LINE Logging Group ID undefined." };
+    }
+    return await message(process.env.LINE_LOGGING_GROUP_ID, str);
+}

@@ -5,5 +5,5 @@ export default function employeeVerifyMessage(user: EmployeeExternal): string {
 Hello ${user.name}:
 An administrator has verified your identity.
 You may use the ReserveCar system by interacting with the rich menu.
-Thank you for using Jastel ReserveCar system.`;
+Thank you for using the ReserveCar system.`;
 }

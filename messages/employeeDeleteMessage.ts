@@ -5,5 +5,5 @@ export default function employeeDeleteMessage(user: EmployeeExternal): string {
 Dear ${user.name}:
 An administrator has removed you from the ReserveCar system.
 If you believe this is in error, please contact the administrator and register to the system again.
-Thank you for using Jastel ReserveCar System.`
+Thank you for using the ReserveCar System.`
 }

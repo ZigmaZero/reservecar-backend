@@ -12,6 +12,8 @@ import authorizeAsEmployee from '../middlewares/authorizeAsEmployee.js';
 import AuthenticatedRequest from '../interfaces/authenticatedRequest.js';
 import authenticateToken from '../middlewares/authenticateToken.js';
 import logger from '../logger.js';
+import { messageGroup } from '../services/lineService.js';
+import jobCheckinMessage from '../messages/jobCheckinMessage.js';
 
 const router = express.Router();
 
@@ -110,7 +112,31 @@ router.post('/checkin', authenticateToken, authorizeAsEmployee, (req: Authentica
       return;
     }
 
-    res.status(201).json({ success: true });
+    // success
+    const reservation = getReservationById(result.lastInsertRowid as number);
+    if (!reservation)
+    {
+      res.status(500).json({ error: 'Failed to create reservation.' });
+      return;
+    }
+
+    return messageGroup(jobCheckinMessage(reservation)).then((result) => {
+      if(result.success)
+      {
+        res.status(201).json({ 
+          line: result.message
+        });
+        return;
+      }
+      else
+      {
+        res.status(201).json({
+          line: `Failed with status ${result.status} and error ${result.error}`
+        });
+        return;
+      }
+    })
+
   } catch (error) {
     logger.error("Error during check-in:", error);
     res.status(500).json({ error: 'Internal Server Error' });
