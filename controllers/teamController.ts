@@ -11,23 +11,22 @@ export function teamDeleteController() {
   return (req: AuthenticatedRequest, res: Response) => {
     const teamId = parseInt(req.params.teamId, 10);
 
-    const cars = getCarsByTeam(teamId);
-    if (cars.length !== 0) {
-      res.status(400).json({ error: 'Cannot remove team while cars are assigned to it. ' });
-      return;
-    }
-
-    const employees = getEmployeesInTeam(teamId);
-    if (employees.length !== 0) {
-      res.status(400).json({ error: 'Cannot remove team while employees are assigned to it. ' });
-    }
-
     if (isNaN(teamId) || !Number.isInteger(teamId)) {
       res.status(400).json({ error: 'Invalid teamId. It must be an integer.' });
       return;
     }
 
     try {
+      const cars = getCarsByTeam(teamId);
+      if (cars.length !== 0) {
+        res.status(403).json({ error: 'Cannot remove team while cars are assigned to it. ' });
+        return;
+      }
+  
+      const employees = getEmployeesInTeam(teamId);
+      if (employees.length !== 0) {
+        res.status(403).json({ error: 'Cannot remove team while employees are assigned to it. ' });
+      }
       const result = deleteTeamAndUnassignMembers(teamId);
 
       if (result.changes === 0) {
